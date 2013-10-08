@@ -34,6 +34,12 @@ host_orgdb = None
 
 # input
 def getopts(args):
+''' Parse command line or config file for options and return a dict.
+
+	using getopt for compatibility
+
+'''
+
 	optlist, args = getopt.getopt(args, 'ho:c:T:', 
 							['help', 'outdir=', 'control_file=',
 							'vir_aln=', 'host_aln=',
@@ -83,7 +89,8 @@ def getopts(args):
 	if 'outdir' not in options:
 		options['outdir'] = './'
 	if 'num_threads' not in options:
-		options['num_threads'] = min(cpu_count() / 2, 1)
+		#options['num_threads'] = min(cpu_count() / 2, 1)
+		options['num_threads'] = 1 # multiprocessing module NOT loaded
 	else:
 		options['num_threads'] = int(options['num_threads'])
 	
@@ -100,6 +107,11 @@ def getopts(args):
 	return options
 
 def parse_ctl(ctl_fn, options):
+''' Parse config file and return updated options dict
+
+
+'''
+
 	print >>sys.stderr, 'reading options from: %s'%ctl_fn
 	ctl_fh = open(ctl_fn, 'r')
 	for line in ctl_fh:
@@ -115,12 +127,22 @@ def parse_ctl(ctl_fn, options):
 	return options
 
 def read_sites(sites_fn):
+''' Reads space delimited file and return list of sites to process.
+
+	Sites should be 0-indexed non-negative integers.
+
+'''
+
 	if sites_fn.lower() == 'all':
 		return 'all'
 	sites_fh = open(sites_fn, 'r')
 	return map(int, ''.join(sites_fh.readlines()).split())
 
 def remove_gapped_sites(keep_sites, aln, taxonPairs):
+''' From a list of sites, remove those with gaps and return a list.
+
+'''
+
 	# this patch replaces 'all' keyword with range
 	if keep_sites == 'all':
 		keep_sites = range(aln.num_cols)
@@ -141,12 +163,25 @@ def remove_gapped_sites(keep_sites, aln, taxonPairs):
 	return sorted(list(set(keep_sites) - remove_these))
 
 def get_jobname(vir_aln, host_aln):
+''' Get jobname from alignment filenames
+	
+	No-extension basename concatenation
+
+'''
+
 	return vir_aln.rsplit('/', 1)[1].rsplit('.phy', 1)[0] +\
 			'_' +\
 			host_aln.rsplit('/', 1)[1].rsplit('.phy', 1)[0]
 
 # output
 def print_output(resObj, out_fn):
+''' Print information stats for each pair of sites in resObj
+
+	resObj is a dict.
+		keys are tuples of sites
+		values are lists of stats
+
+'''
 	outfh = open(out_fn, 'w')
 	print >>outfh, 'h1, h2, hj, mi, vi, mi_Nhmin, mi_Nhj'.replace(', ', '\t')
 	statstr = '\t%.6f' * 7 
@@ -156,7 +191,6 @@ def print_output(resObj, out_fn):
 	outfh.close()
 
 # meat
-
 def doCalc(vir_aln, host_aln, vir_keep, host_keep, taxonPairs):
 	''' loops through columns of alignments
 		passes each alignment column labeled with organism name
@@ -253,6 +287,11 @@ def bootJob(resObj, pq, vir_rep, host_rep, vir_ncol, host_ncol, taxonPairs, vir_
 	pq.put(('X','X','X'))
 
 def flatten(bloated, pos, orgdb):
+''' some formatting of pickled sim files
+	REMOVING THIS FUNCTION
+
+'''
+
 	flat = dict()
 	for seq_ident, seq in bloated.iteritems():
 		taxid = orgdb[seq_ident.strip()] # strip just in case
@@ -265,6 +304,14 @@ def flatten(bloated, pos, orgdb):
 	return flat
 
 def getSimStats(c1, c2, taxonPairs):
+''' Input alignment columns and pairings, return stats.
+
+	No Entropies 
+
+	REMOVE THIS FUNCTION
+
+'''
+
 	m1,m2,jd = miCalcxs.makeProbabilities(c1,c2,taxonPairs)
 	return miCalcxs.calcStats(m1, m2, jd)[3:] # mi to the end
 
