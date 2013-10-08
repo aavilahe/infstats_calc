@@ -16,23 +16,23 @@
 
 import sys
 import getopt
-from multiprocessing import *
 from math import isnan
 
-#sys.path.append('/home/aram/projects/coevolution/newsrc')
-sys.path.append('/home/aram/projects/coevolution/visrc_feb14_2013')
+# module path ... fix with egg install later?
+__SRC_PATH = '/home/aram/dev-src/infStats_calc/'
+sys.path.append(__SRC_PATH+'infCalc_modules')
 
-import miCalcxs
-import miAux
+import infCalc_Aux
+import infCalc_Calcxs
 
 
-# some constant global vars
+# Global Constants
 eps = 2e-6
 
 vir_orgdb = None # hax hax hax grrrrr
 host_orgdb = None
 
-# input 
+# input
 def getopts(args):
 	optlist, args = getopt.getopt(args, 'ho:c:T:', 
 							['help', 'outdir=', 'control_file=',
