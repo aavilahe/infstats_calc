@@ -27,10 +27,7 @@ import infCalc_Calcxs
 
 
 # Global Constants
-eps = 2e-6
-
-vir_orgdb = None # hax hax hax grrrrr
-host_orgdb = None
+EPS = 2e-6
 
 # input
 def getopts(args):
@@ -217,108 +214,7 @@ def doCalc(vir_aln, host_aln, vir_keep, host_keep, taxonPairs):
 			stats[(i, j)] = miCalcxs.calcStats(m1, m2, jd)
 	return stats
 
-def doBoot(resObj, vir_sim, host_sim, pval_name, vir_keep, host_keep, taxonPairs, numThreads):
-	vir_ncol = len(vir_sim[0].itervalues().next()) # rep1, seq1 --> columns
-	host_ncol = len(host_sim[0].itervalues().next())
-	numReps = len(vir_sim)
-	#numReps = 3 # for testing only
-
-	pq = Queue()
-
-	pval_job = Process(target=miCalcxs.Pcount, args=(pq, numReps, pval_name))
-	pval_job.start()
-	
-	boot_j = [ '' ] * numReps
-
-	for rep in xrange(numReps):
-		vir_rep = vir_sim[rep]
-		host_rep = host_sim[rep]
-		boot_j[rep] = Process(target=bootJob, 
-					args=(resObj, pq, vir_rep, host_rep, vir_ncol, host_ncol, taxonPairs, vir_keep, host_keep)
-					)
-
-	numActive = 0
-	killnext = 0
-	
-	for i,j in enumerate(boot_j):
-		if numActive >= numThreads:
-			boot_j[killnext].join()
-			boot_j[killnext] = 0
-			killnext += 1
-			numActive -= 1
-		j.start()
-		print >>sys.stderr, "started boot job", i
-		numActive += 1
-	
-	for i in xrange(killnext, numReps):
-		boot_j[i].join()
-		boot_j[i] = 0
-
-def bootJob(resObj, pq, vir_rep, host_rep, vir_ncol, host_ncol, taxonPairs, vir_keep, host_keep):
-	''' resObj is the output of doCalc which is the output of miCalcxs.calcStats()
-			resObj: (h1, h2, hj, mi, vi, mi_Nhmin, mi_Nhj)
-	
-	'''
-
-	if vir_keep == 'all':
-		vir_keep = range(vir_ncol)
-	if host_keep == 'all':
-		host_keep = range(host_ncol)
-	
-	for i in vir_keep:
-		col_i = flatten(vir_rep, i, vir_orgdb)
-		for j in host_keep:
-			col_j = flatten(host_rep, j, host_orgdb)
-			stats = getSimStats(col_i, col_j, taxonPairs)
-			obsStats = resObj[(i,j)][3:] # get the 4th to the end (mi, vi,
-											#			mi_Nhmin, mi_Nhj)
-			for s, stat in enumerate(stats):
-				if isnan(stat):
-					stat = 0
-
-				# count how many times simulated mi, mi_Nhmin, mi_Nhj are >= observed (similarity)
-				# count how many times simulated vi (a distance) <= observed
-				if s != 1:
-					if obsStats[s] - stat <= eps:
-						pq.put((i,j,s))
-				else:
-					if obsStats[s] - stat >= eps:
-						pq.put((i,j,s))
-	pq.put(('X','X','X'))
-
-def flatten(bloated, pos, orgdb):
-''' some formatting of pickled sim files
-	REMOVING THIS FUNCTION
-
-'''
-
-	flat = dict()
-	for seq_ident, seq in bloated.iteritems():
-		taxid = orgdb[seq_ident.strip()] # strip just in case
-		if pos >= len(seq):
-			print "\tseq_ident = %s; pos = %d; lastseqidx = %d" %(taxid, pos, len(seq)-1)
-		if taxid in flat:
-			flat[taxid] += seq[pos]
-		else:
-			flat[taxid] = seq[pos]
-	return flat
-
-def getSimStats(c1, c2, taxonPairs):
-''' Input alignment columns and pairings, return stats.
-
-	No Entropies 
-
-	REMOVE THIS FUNCTION
-
-'''
-
-	m1,m2,jd = miCalcxs.makeProbabilities(c1,c2,taxonPairs)
-	return miCalcxs.calcStats(m1, m2, jd)[3:] # mi to the end
-
 def main(options):
-	global vir_orgdb
-	global host_orgdb
-	
 	# make output names
 	jobname = get_jobname(options['vir_aln'], options['host_aln'])
 	pval_fn = options['outdir'] + '/' + jobname + '.pval'
@@ -328,12 +224,7 @@ def main(options):
 	vir_aln, vir_orgdb = miAux.read_org_and_phy(options['vir_aln'])
 	host_aln, host_orgdb = miAux.read_org_and_phy(options['host_aln'])
 	print >>sys.stderr, "alignments loaded"
-	
-	# load simulations
-	vir_sim = miAux.read_sim(open(options['vir_sim'], 'r'))
-	host_sim = miAux.read_sim(open(options['host_sim'], 'r'))
-	print >>sys.stderr, "sims loaded"
-	
+
 	# load virus-host pairings map
 	taxonPairs = miAux.read_taxonPairs(options['taxon_pairs'], vir_orgdb.values(), host_orgdb.values())
 	print >>sys.stderr, "virus-host pairings read"
@@ -354,11 +245,6 @@ def main(options):
 
 	resObj = doCalc(vir_aln, host_aln, vir_keep, host_keep, taxonPairs)
 	print >>sys.stderr, "main calculations completed"
-	
-	# le p-values
-
-	pvals = doBoot(resObj, vir_sim, host_sim, pval_fn, vir_keep, host_keep, taxonPairs, options['num_threads'])
-	print >>sys.stderr, "pvalues calculated..."
 
 	print_output(resObj, out_fn)
 	print >>sys.stderr, "done"
