@@ -1,8 +1,16 @@
 #!/usr/bin/python
-''' - calculate MI for pairs of alignment columns from different
-	protein alignments.
-	- if not aa symbol then 'missing data'
-	- calculate VI = HI(X,Y) - MI(X,Y) and p-values
+''' infCalc.py -- Estimates marginal and joint entropies for
+	pairs of alignment columns
+
+	Calculates various information statistics based
+	on marginal and joint entropies
+
+	Output is tab delimited
+
+	Cython optimized
+
+	!! Removed in-memory bootstrapping
+	!! Removing sequence grouping
 
 '''
 
