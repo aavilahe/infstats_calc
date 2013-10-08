@@ -22,8 +22,8 @@ from math import isnan
 __SRC_PATH = '/home/aram/dev-src/infStats_calc/'
 sys.path.append(__SRC_PATH+'infCalc_modules')
 
-import infCalc_Aux
-import infCalc_Calcxs
+import infCalc_Aux as iC_A
+import infCalc_Calcxs as iC_C
 
 
 # Global Constants
@@ -42,14 +42,14 @@ def getopts(args):
 							'vir_aln=', 'host_aln=',
 							'vir_sim=', 'host_sim=',
 							'vir_keep=', 'host_keep=',
-							'taxon_pairs='])
+							'seqID_pairs='])
 
 	options = dict()
 	usage = 'usage: %s [-h | -c ctl_file | '+\
 			'--vir_aln=align1 --host_aln=align2 '+\
 			'--vir_sim=sim1 --host_sim=sim2 '+\
 			'--vir_keep=keep1 --host_keep=keep2 '+\
-			'--taxon_pairs=virushost.pair ] '+\
+			'--seqID_pairs=virushost.pair ] '+\
 			'[-o | --outdir directory] '+\
 			'[-T num_threads]'
 
@@ -73,8 +73,8 @@ def getopts(args):
 			options['vir_keep'] = val
 		if opt == '--host_keep':
 			options['host_keep'] = val
-		if opt == '--taxon_pairs':
-			options['taxon_pairs'] = val
+		if opt == '--seqID_pairs':
+			options['seqID_pairs'] = val
 		if opt == '-T':
 			options['num_threads'] = val
 	
@@ -93,7 +93,7 @@ def getopts(args):
 	
 	if not set(['vir_aln', 'host_aln',
 			'vir_sim', 'host_sim',
-			'vir_keep', 'host_keep', 'taxon_pairs']) <= set(options.keys()):
+			'vir_keep', 'host_keep', 'seqID_pairs']) <= set(options.keys()):
 			sys.exit(usage)
 	
 	# print options
@@ -135,12 +135,12 @@ def read_sites(sites_fn):
 	sites_fh = open(sites_fn, 'r')
 	return map(int, ''.join(sites_fh.readlines()).split())
 
-def remove_gapped_sites(keep_sites, aln, taxonPairs):
+def remove_gapped_sites(keep_sites, aln, seqID_pairs):
 ''' From a list of sites, remove those with gaps and return a list.
 
 '''
 
-	# this patch replaces 'all' keyword with range
+	# this patch replaces 'all' keyword with site range
 	if keep_sites == 'all':
 		keep_sites = range(aln.num_cols)
 
@@ -149,7 +149,7 @@ def remove_gapped_sites(keep_sites, aln, taxonPairs):
 
 	# make a set of all taxons
 	taxonSet = set()
-	[ [ taxonSet.add(x) for x in (v,h)] for (v,h) in taxonPairs ]
+	[ [ taxonSet.add(x) for x in (v,h)] for (v,h) in seqID_pairs ]
 	for site_i in keep_sites:
 		col = aln.get_site(site_i)
 		for orgID in col.keys():
@@ -188,30 +188,26 @@ def print_output(resObj, out_fn):
 	outfh.close()
 
 # meat
-def doCalc(vir_aln, host_aln, vir_keep, host_keep, taxonPairs):
-	''' loops through columns of alignments
-		passes each alignment column labeled with organism name
-		to makeProbabilities() as dict k = id, v = symbols
+def doCalc(vir_aln, host_aln, vir_keep, host_keep, seqID_pairs):
+	''' Loops through pairs of alignment columns and returns stats in a dict.
+			Passes each alignment column labeled with organism name
+				to makeProbabilities()
+			seqID_pairs tells makeProbabilities() how to match sequences
 
-		taxonPairs tells makeProbabilities how to match up
-		viruses with hosts
+		stats is a dict.
+			keys are tuples of sites
+			values are list of stats: [ MutInf, VarInf, ZminH, ZHj ]
 
 	'''
 
-	if vir_keep == 'all':
-		vir_keep = range(vir_aln.num_cols)
-	if host_keep == 'all':
-		host_keep = range(host_aln.num_cols)
-	
 	stats = dict()
 		
 	for i in vir_keep:
 		vir_aln_col = vir_aln.get_site(i)
 		for j in host_keep:
 			host_aln_col = host_aln.get_site(j)
-			(m1, m2, jd) = miCalcxs.makeProbabilities(vir_aln_col, host_aln_col, taxonPairs)
-			# stats should now have an extra member (VI after MI)
-			stats[(i, j)] = miCalcxs.calcStats(m1, m2, jd)
+			(vir_prob, host_prob, joint_prob) = iC_C.makeProbabilities(vir_aln_col, host_aln_col, seqID_pairs)
+			stats[(i, j)] = iC_C.calcStats(vir_prob, host_prob, joint_prob)
 	return stats
 
 def main(options):
@@ -226,7 +222,7 @@ def main(options):
 	print >>sys.stderr, "alignments loaded"
 
 	# load virus-host pairings map
-	taxonPairs = miAux.read_taxonPairs(options['taxon_pairs'], vir_orgdb.values(), host_orgdb.values())
+	seqID_pairs = miAux.read_seqID_pairs(options['seqID_pairs'], vir_orgdb.values(), host_orgdb.values())
 	print >>sys.stderr, "virus-host pairings read"
 
 	# load list of sites to compare
@@ -234,8 +230,8 @@ def main(options):
 	host_keep = read_sites(options['host_keep'])
 	print >>sys.stderr, "site lists loaded"
 
-	vir_keep = remove_gapped_sites(vir_keep, vir_aln, taxonPairs)
-	host_keep = remove_gapped_sites(host_keep, host_aln, taxonPairs)
+	vir_keep = remove_gapped_sites(vir_keep, vir_aln, seqID_pairs)
+	host_keep = remove_gapped_sites(host_keep, host_aln, seqID_pairs)
 	print >>sys.stderr, "site lists degapped"
 	
 	print 'vir_keep (max) = %d; ncol = %d'%( sorted(vir_keep)[-1], vir_aln.num_cols)
@@ -243,7 +239,7 @@ def main(options):
 
 	# calculate info stats
 
-	resObj = doCalc(vir_aln, host_aln, vir_keep, host_keep, taxonPairs)
+	resObj = doCalc(vir_aln, host_aln, vir_keep, host_keep, seqID_pairs)
 	print >>sys.stderr, "main calculations completed"
 
 	print_output(resObj, out_fn)
