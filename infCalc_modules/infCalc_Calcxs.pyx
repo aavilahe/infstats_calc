@@ -15,14 +15,15 @@ cdef extern from "math.h":
 cdef double eps = 2e-6
 cdef double cdef_float_nan = float('nan')
 
-cpdef tuple makeProbabilities(dict colSymsByTaxon1, dict colSymsByTaxon2, list taxonPairs):
+cpdef tuple makeProbabilities(dict colSymsByTaxon1, dict colSymsByTaxon2, list seqID_pairs):
 	''' Calculates marginal probabilities for symbols
 		in each column based on observed frequencies
 		
-		Calculates joint distribution for symbols occuring
-		in paired virus-hosts in both columns
-		
-		Each virus contributes equally (average amino acid count per host)
+		Calculates joint distribution for pairs of symbols
+		in both columns
+
+		seqID_pairs is a list of tuples containing seqIDs for first and second column
+		for each seqID_pair, the subcolumn is extracted and the prob distros are updated
 
 	'''
 
@@ -30,11 +31,11 @@ cpdef tuple makeProbabilities(dict colSymsByTaxon1, dict colSymsByTaxon2, list t
 	marginal_2 = dict()
 	joint = dict()
 	
-	cdef int num_taxa = len(taxonPairs)
+	cdef int num_taxa = len(seqID_pairs)
 
 	cdef int taxIdx
 	for taxIdx in range(num_taxa):
-		taxon1, taxon2 = taxonPairs[taxIdx]
+		taxon1, taxon2 = seqID_pairs[taxIdx]
 		# for each taxon, get average amino acid count
 		taxSyms_1 = colSymsByTaxon1[taxon1] # str
 		taxSyms_2 = colSymsByTaxon2[taxon2] # str
