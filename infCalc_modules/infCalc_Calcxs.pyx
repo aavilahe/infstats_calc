@@ -60,28 +60,28 @@ cpdef tuple makeProbabilities(dict column_1, dict column_2, list seqID_pairs):
 
 	return (marginal_1, marginal_2, joint)
 
-cdef int updateMarginal(double possibleObs, bytes seqID_Syms, dict marginal):
+cdef int updateMarginal(double effectiveNumObs, bytes symbols_1, dict marginal):
 	''' increment each symbol's probabilities
 
 	'''
 
-	for sym in seqID_Syms:
+	for sym in symbols_1:
 		exp_sym, weight = expand(sym)
-		inc = weight / possibleObs
+		inc = weight / effectiveNumObs
 		for termsym in exp_sym:
 			if termsym in marginal:
 				marginal[termsym] += inc
 			else:
 				marginal[termsym] = inc
 
-cdef int updateJoint(double possibleObs, bytes seqID_Syms_1, bytes seqID_Syms_2, dict joint):
-	''' increment each pair of symbol's probabilities
+cdef int updateJoint(double effectiveNumObs, bytes symbols_1, bytes symbols_2, dict joint):
+	''' increment each symbol-pair's probabilities
 
 	'''
 
-	for sympair in product(seqID_Syms_1, seqID_Syms_2):
+	for sympair in product(symbols_1, symbols_2):
 		exp_sympair, weight = expand2(sympair)
-		inc = weight / possibleObs
+		inc = weight / effectiveNumObs
 		for termpair in exp_sympair:
 			if termpair in joint:
 				joint[termpair] += inc
@@ -89,6 +89,12 @@ cdef int updateJoint(double possibleObs, bytes seqID_Syms_1, bytes seqID_Syms_2,
 				joint[termpair] = inc
 
 cdef inline tuple expand(bytes nonterm):
+	''' expand ambiguous amino acids
+		
+		takes bytes, returns tuple(bytes, weight)
+
+	'''
+
 	if nonterm == 'X':
 		return 'ACDEFGHIKLMNPQRSTVWY', 0.05
 	if nonterm == 'B':
@@ -98,6 +104,12 @@ cdef inline tuple expand(bytes nonterm):
 	return nonterm, 1.0
 
 cdef inline tuple expand2(tuple nonterms):
+	''' expand ambiguous pairs of amino acids
+
+		takes tuple of bytes, returns tuple(iterator,weight)
+
+	'''
+
 	e1, w1 = expand(nonterms[0])
 	e2, w2 = expand(nonterms[1])
 	return product(e1,e2), w1 * w2
