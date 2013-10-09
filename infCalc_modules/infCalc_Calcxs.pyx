@@ -15,15 +15,21 @@ cdef extern from "math.h":
 cdef double eps = 2e-6
 cdef double cdef_float_nan = float('nan')
 
-cpdef tuple makeProbabilities(dict colSymsByTaxon1, dict colSymsByTaxon2, list seqID_pairs):
+cpdef tuple makeProbabilities(dict column_1, dict column_2, list seqID_pairs):
 	''' Calculates marginal probabilities for symbols
 		in each column based on observed frequencies
 		
 		Calculates joint distribution for pairs of symbols
 		in both columns
 
+		Force 1-to-1 relationship between sequences in different columns
+
 		seqID_pairs is a list of tuples containing seqIDs for first and second column
 		for each seqID_pair, the subcolumn is extracted and the prob distros are updated
+
+		column_1 and column_2 are dicts.
+			keys are seqIDs
+			values are string of symbols (eg. amino acids ACDEFG...Y)
 
 	'''
 
@@ -31,20 +37,22 @@ cpdef tuple makeProbabilities(dict colSymsByTaxon1, dict colSymsByTaxon2, list s
 	marginal_2 = dict()
 	joint = dict()
 	
-	cdef int num_taxa = len(seqID_pairs)
+	cdef int num_seqIDs = len(seqID_pairs)
 
-	cdef int taxIdx
-	for taxIdx in range(num_taxa):
-		taxon1, taxon2 = seqID_pairs[taxIdx]
-		# for each taxon, get average amino acid count
-		taxSyms_1 = colSymsByTaxon1[taxon1] # str
-		taxSyms_2 = colSymsByTaxon2[taxon2] # str
-		num_obs_1 = len(taxSyms_1)
-		num_obs_2 = len(taxSyms_2)
+	cdef int seqID_idx
+	for seqID_idx in range(num_seqIDs):
+		seqID_1, seqID_2 = seqID_pairs[seqID_idx]
+		symbols_1 = column_1[seqID_on1] # str
+		symbols_2 = column_2[seqID_on2] # str
+		#num_obs_1 = len(symbols_1)
+		#num_obs_2 = len(symbols_2)
 
-		updateMarginal(num_obs_1 * num_taxa, taxSyms_1, marginal_1)
-		updateMarginal(num_obs_2 * num_taxa, taxSyms_2, marginal_2)
-		updateJoint(num_obs_1 * num_obs_2 * num_taxa, taxSyms_1, taxSyms_2, joint)
+		#updateMarginal(num_obs_1 * num_seqIDs, symbols_1, marginal_1)
+		updateMarginal(num_seqIDs, symbols_1, marginal_1)
+		#updateMarginal(num_obs_2 * num_seqIDs, symbols_2, marginal_2)
+		updateMarginal(num_seqIDs, symbols_2, marginal_2)
+		#updateJoint(num_obs_1 * num_obs_2 * num_seqIDs, symbols_1, symbols_2, joint)
+		updateJoint(num_seqIDs, symbols_1, symbols_2, joint)
 
 	sanityCheckDist(marginal_1)
 	sanityCheckDist(marginal_2)
@@ -52,12 +60,12 @@ cpdef tuple makeProbabilities(dict colSymsByTaxon1, dict colSymsByTaxon2, list s
 
 	return (marginal_1, marginal_2, joint)
 
-cdef int updateMarginal(double possibleObs, bytes taxSyms, dict marginal):
+cdef int updateMarginal(double possibleObs, bytes seqID_Syms, dict marginal):
 	''' increment each symbol's probabilities
 
 	'''
 
-	for sym in taxSyms:
+	for sym in seqID_Syms:
 		exp_sym, weight = expand(sym)
 		inc = weight / possibleObs
 		for termsym in exp_sym:
@@ -66,12 +74,12 @@ cdef int updateMarginal(double possibleObs, bytes taxSyms, dict marginal):
 			else:
 				marginal[termsym] = inc
 
-cdef int updateJoint(double possibleObs, bytes taxSyms_1, bytes taxSyms_2, dict joint):
+cdef int updateJoint(double possibleObs, bytes seqID_Syms_1, bytes seqID_Syms_2, dict joint):
 	''' increment each pair of symbol's probabilities
 
 	'''
 
-	for sympair in product(taxSyms_1, taxSyms_2):
+	for sympair in product(seqID_Syms_1, seqID_Syms_2):
 		exp_sympair, weight = expand2(sympair)
 		inc = weight / possibleObs
 		for termpair in exp_sympair:
