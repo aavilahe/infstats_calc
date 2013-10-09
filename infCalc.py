@@ -180,11 +180,12 @@ def print_output(resObj, out_fn):
 
 '''
 	outfh = open(out_fn, 'w')
-	print >>outfh, 'h1, h2, hj, mi, vi, mi_Nhmin, mi_Nhj'.replace(', ', '\t')
-	statstr = '\t%.6f' * 7 
+	print >>outfh, '\t'.join('Virus_Column', 'Mammal_Column',
+								'Vir_Entropy', 'Mam_Entropy', 'Joint_Entropy',
+								'MutInf', 'VarInf', 'Zmin_MutInf', 'Zjoint_MutInf')
+	statstr = '\t%.6f' * 7
 	for coord, stat in resObj.iteritems():
-		#print >>outfh, str(coord) + '\t' + '\t'.join(map(str, stat))
-		print >>outfh, str(coord) + statstr % ( stat )
+		print >>outfh, '\t'.join(map(str, coord)) + statstr % ( stat )
 	outfh.close()
 
 # meat
