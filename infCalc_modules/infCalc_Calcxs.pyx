@@ -1,6 +1,6 @@
 #!/usr/bin/python
-''' miCalcxs.pyx -- functions for estimating probability distributions,
-					entropy, and mutual information
+''' infCalc_Calcxs -- functions for estimating probability distributions,
+					entropies, and information based statistics
 
 '''
 
