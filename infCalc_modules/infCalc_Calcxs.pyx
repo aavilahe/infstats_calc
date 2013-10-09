@@ -115,17 +115,17 @@ cdef inline tuple expand2(tuple nonterms):
 	return product(e1,e2), w1 * w2
 	
 cpdef int sanityCheckDist(dict probDist):
-	''' make sure these probabilities are ok
+	''' asserts probability distributions are positive and less than 1
 
 	'''
 
 	cdef double sumProbs
 
 	for sym, prob in probDist.iteritems():
-		probDist[sym] = fmax(0.0, fmin(1.0, prob))
-	sumProbs = sum(probDist.values())
+		probDist[sym] = fmax(0.0, fmin(1.0, prob)) # forces probability in [0,1]
+	sumProbs = sum(probDist.values()) # numerically unstable
 	if sumProbs - eps> 1.0:
-		sys.stderr.write(str(probDist) + "\n")
+		sys.stderr.write(str(probDist) + '\n')
 		sys.stderr.write(str(sumProbs) + '\n')
 		sys.exit("sanityCheckDist failed:: probs > 1")
 	if sumProbs < 0.0:
@@ -138,6 +138,7 @@ cpdef tuple calcStats(dict marginal_1, dict marginal_2, dict joint):
 		- entropy 2 (h2)
 		- entropy joint (hj)
 		- mutual information (mi)
+		- variation of information (vi)
 		- mi / min(h1, h2)
 		- mi / hj
 
@@ -146,12 +147,12 @@ cpdef tuple calcStats(dict marginal_1, dict marginal_2, dict joint):
 	cdef double h1 = calcH(marginal_1)
 	cdef double h2 = calcH(marginal_2)
 	cdef double hj = calcH(joint)
-	cdef double mi = fmax(h1 + h2 - hj, 0.0)
-	cdef double vi = fmax(hj - mi, 0.0)
+	cdef double mi = fmax(h1 + h2 - hj, 0.0) # mi is non-negative
+	cdef double vi = fmax(hj - mi, 0.0) # vi is non-negative
 	cdef double mi_Nhmin
 	cdef double mi_Nhj
 	
-	# normalized mis
+	# normalized mis: avoid dividing by zero
 	cdef double hmin = fmin(h1, h2)
 	if hmin > eps:
 		mi_Nhmin = mi / hmin
@@ -167,10 +168,12 @@ cpdef tuple calcStats(dict marginal_1, dict marginal_2, dict joint):
 
 cdef inline double calcH(dict probDist):
 	''' calculate entropy of probDist
+		
+		probDist is a dict
+			key is a symbol
+			value is a probability
 
 	'''
-
-	# probDist is a dict of syms
 
 	cdef double h = 0.0
 	cdef double p
@@ -180,37 +183,4 @@ cdef inline double calcH(dict probDist):
 	h = fmax(0.0, h)
 
 	return h
-
-cdef int printP(bytes outname, dict pvals):
-	outf = open(outname, 'w')
-	for c, plist in pvals.iteritems():
-		outf.write(str(c) + '\t' + '\t'.join(map(str,plist)) + '\n')
-	return 0
-
-cpdef int Pcount(object queue, int numReps, bytes outname):
-	cdef int completed = 0
-	cdef double pval_inc = 1.0 / numReps
-	pvals = dict()
-	while True:
-		if completed >= numReps:
-			return printP(outname, pvals)
-		(x, y, pi) = queue.get()
-		if (x, y) == ('X', 'X'):
-			completed += 1
-			continue
-		if (x, y) in pvals:
-			pvals[(x,y)][pi] += pval_inc
-		else:
-			pvals[(x,y)] = [0.0, 0.0, 0.0, 0.0] # mi, vi, mi_Nhmin, mi_Nhj
-			pvals[(x,y)][pi] += pval_inc
-	
-#cdef inline double fmax(double a, double b):
-#	if a > b:
-#		return a
-#	return b
-#
-#cdef inline double fmin(double a, double b):
-#	if a < b:
-#		return a
-#	return b
 
