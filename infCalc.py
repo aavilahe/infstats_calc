@@ -22,9 +22,8 @@ from math import isnan
 # module path ... fix with egg install later?
 #__SRC_PATH = '/home/aram/dev-src/infStats_calc/'
 __SRC_PATH = getenv("__SRC_PATH")
-print "DBG:", "__SRC_PATH:", __SRC_PATH
 sys.path.append(__SRC_PATH+'/'+'infCalc_modules')
-
+print "DBG:", "__SRC_PATH:", __SRC_PATH
 
 import infCalc_Aux as iC_A
 import infCalc_Calcxs as iC_C
