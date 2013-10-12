@@ -223,27 +223,27 @@ def main(options):
 	out_fn = options['outdir'] + '/' + jobname + '.out'
 
 	# load alignments
-	print "LOADING BROKEN"
-	sys.exit(10)
 	#vir_aln, vir_orgdb = miAux.read_org_and_phy(options['vir_aln'])
 	#host_aln, host_orgdb = miAux.read_org_and_phy(options['host_aln'])
+	vir_aln = iC_A.read_phy(options['vir_aln'])
+	host_aln = iC_A.read_phy(options['host_aln'])
 	print >>sys.stderr, "alignments loaded"
 
 	## load virus-host pairings map
 	# load sequence pairings
-	seqID_pairs = miAux.read_seqID_pairs(options['seqID_pairs'], vir_orgdb.values(), host_orgdb.values())
+	seqID_pairs = iC_A.read_seqID_pairs(options['seqID_pairs'], vir_orgdb.values(), host_orgdb.values())
 	print >>sys.stderr, "virus-host pairings read"
 
-	# load list of sites to compare
-### Make this an option
-	vir_keep = read_sites(options['vir_keep'])
-	host_keep = read_sites(options['host_keep'])
-	print >>sys.stderr, "site lists loaded"
+	print >>sys.stderr, "skipping site filtering"
+#	# load list of sites to compare
+#	vir_keep = read_sites(options['vir_keep'])
+#	host_keep = read_sites(options['host_keep'])
+#	print >>sys.stderr, "site lists loaded"
 
-	vir_keep = remove_gapped_sites(vir_keep, vir_aln, seqID_pairs)
-	host_keep = remove_gapped_sites(host_keep, host_aln, seqID_pairs)
-	print >>sys.stderr, "site lists degapped"
-###
+#	vir_keep = remove_gapped_sites(vir_keep, vir_aln, seqID_pairs)
+#	host_keep = remove_gapped_sites(host_keep, host_aln, seqID_pairs)
+#	print >>sys.stderr, "site lists degapped"
+
 	#DBG info
 	print 'vir_keep (max) = %d; ncol = %d'%( sorted(vir_keep)[-1], vir_aln.num_cols)
 	print 'host_keep (max) = %d; ncol = %d'%( sorted(host_keep)[-1], host_aln.num_cols)
