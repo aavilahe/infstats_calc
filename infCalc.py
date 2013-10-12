@@ -100,6 +100,7 @@ def getopts(args):
 	if not set(['vir_aln', 'host_aln',
 			#'vir_sim', 'host_sim',
 			'vir_keep', 'host_keep', 'seqID_pairs']) <= set(options.keys()):
+			print "DBG:", 'here!'
 			sys.exit(usage)
 	
 	# print options

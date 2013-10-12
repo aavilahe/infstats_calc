@@ -7,4 +7,5 @@ host_aln	host.phy
 host_sim	herp2
 host_keep	all
 #host_keep	host.keep
+seqID_pairs	seq.pairs
 
