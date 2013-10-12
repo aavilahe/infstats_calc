@@ -98,7 +98,7 @@ def getopts(args):
 		options['num_threads'] = int(options['num_threads'])
 	
 	if not set(['vir_aln', 'host_aln',
-			'vir_sim', 'host_sim',
+			#'vir_sim', 'host_sim',
 			'vir_keep', 'host_keep', 'seqID_pairs']) <= set(options.keys()):
 			sys.exit(usage)
 	
