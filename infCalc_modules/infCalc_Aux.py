@@ -43,8 +43,8 @@ def read_phy(fh, orgdb=None):
 			seq = line[10:].replace(' ', '')
 			aln.store(seq_ident, seq)
 		else:
-			num_seqs, num_cols = line.split()
-			aln = seqAln(num_seqs, num_cols, orgdb)
+			num_seqs, num_cols = line.split()[:2]
+			aln = seqAln(num_seqs, num_cols)
 			seqLine = True
 	return aln
 
@@ -72,7 +72,7 @@ def read_sim(fh):
 	print >>sys.stderr, "sim read"	
 	return simObj
 
-def read_seqID_pairs(fn, vir_orgs, host_orgs):
+def read_seqID_pairs(fn):
 	''' Reads two-column tab-delimited file of paired seqIDs
 		and returns a list of tuples of seqIDs.
 
