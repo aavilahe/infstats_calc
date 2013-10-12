@@ -186,9 +186,9 @@ def print_output(resObj, out_fn):
 
 	'''
 	outfh = open(out_fn, 'w')
-	print >>outfh, '\t'.join('Virus_Column', 'Mammal_Column',
+	print >>outfh, '\t'.join(('Virus_Column', 'Mammal_Column',
 								'Vir_Entropy', 'Mam_Entropy', 'Joint_Entropy',
-								'MutInf', 'VarInf', 'Zmin_MutInf', 'Zjoint_MutInf')
+								'MutInf', 'VarInf', 'Zmin_MutInf', 'Zjoint_MutInf'))
 	statstr = '\t%.6f' * 7
 	for coord, stat in resObj.iteritems():
 		print >>outfh, '\t'.join(map(str, coord)) + statstr % ( stat )
@@ -225,24 +225,24 @@ def main(options):
 	# load alignments
 	#vir_aln, vir_orgdb = miAux.read_org_and_phy(options['vir_aln'])
 	#host_aln, host_orgdb = miAux.read_org_and_phy(options['host_aln'])
-	vir_aln = iC_A.read_phy(options['vir_aln'])
-	host_aln = iC_A.read_phy(options['host_aln'])
+	vir_aln = iC_A.read_phy(open(options['vir_aln'],'r'))
+	host_aln = iC_A.read_phy(open(options['host_aln'],'r'))
 	print >>sys.stderr, "alignments loaded"
 
 	## load virus-host pairings map
 	# load sequence pairings
-	seqID_pairs = iC_A.read_seqID_pairs(options['seqID_pairs'], vir_orgdb.values(), host_orgdb.values())
+	seqID_pairs = iC_A.read_seqID_pairs(options['seqID_pairs'])
 	print >>sys.stderr, "virus-host pairings read"
 
 	print >>sys.stderr, "skipping site filtering"
 #	# load list of sites to compare
-#	vir_keep = read_sites(options['vir_keep'])
-#	host_keep = read_sites(options['host_keep'])
-#	print >>sys.stderr, "site lists loaded"
+	vir_keep = read_sites(options['vir_keep'])
+	host_keep = read_sites(options['host_keep'])
+	print >>sys.stderr, "site lists loaded"
 
-#	vir_keep = remove_gapped_sites(vir_keep, vir_aln, seqID_pairs)
-#	host_keep = remove_gapped_sites(host_keep, host_aln, seqID_pairs)
-#	print >>sys.stderr, "site lists degapped"
+	vir_keep = remove_gapped_sites(vir_keep, vir_aln, seqID_pairs)
+	host_keep = remove_gapped_sites(host_keep, host_aln, seqID_pairs)
+	print >>sys.stderr, "site lists degapped"
 
 	#DBG info
 	print 'vir_keep (max) = %d; ncol = %d'%( sorted(vir_keep)[-1], vir_aln.num_cols)
