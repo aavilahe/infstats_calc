@@ -15,12 +15,16 @@
 '''
 
 import sys
+from os import getenv
 import getopt
 from math import isnan
 
 # module path ... fix with egg install later?
-__SRC_PATH = '/home/aram/dev-src/infStats_calc/'
-sys.path.append(__SRC_PATH+'infCalc_modules')
+#__SRC_PATH = '/home/aram/dev-src/infStats_calc/'
+__SRC_PATH = getenv("__SRC_PATH")
+print "DBG:", "__SRC_PATH:", __SRC_PATH
+sys.path.append(__SRC_PATH+'/'+'infCalc_modules')
+
 
 import infCalc_Aux as iC_A
 import infCalc_Calcxs as iC_C
@@ -31,11 +35,11 @@ EPS = 2e-6
 
 # input
 def getopts(args):
-''' Parse command line or config file for options and return a dict.
+	''' Parse command line or config file for options and return a dict.
 
-	using getopt for compatibility
+		using getopt for compatibility
 
-'''
+	'''
 
 	optlist, args = getopt.getopt(args, 'ho:c:T:', 
 							['help', 'outdir=', 'control_file=',
@@ -45,13 +49,15 @@ def getopts(args):
 							'seqID_pairs='])
 
 	options = dict()
-	usage = 'usage: %s [-h | -c ctl_file | '+\
-			'--vir_aln=align1 --host_aln=align2 '+\
-			'--vir_sim=sim1 --host_sim=sim2 '+\
-			'--vir_keep=keep1 --host_keep=keep2 '+\
-			'--seqID_pairs=virushost.pair ] '+\
-			'[-o | --outdir directory] '+\
-			'[-T num_threads]'
+	usage = (
+				'usage: %s [-h | -c ctl_file | '+\
+				'--vir_aln=align1 --host_aln=align2 '+\
+				'--vir_sim=sim1 --host_sim=sim2 '+\
+				'--vir_keep=keep1 --host_keep=keep2 '+\
+				'--seqID_pairs=virushost.pair ] '+\
+				'[-o | --outdir directory] '+\
+				'[-T num_threads]'
+			)% sys.argv[0]
 
 	# read command line
 	for opt, val in optlist:
@@ -104,10 +110,10 @@ def getopts(args):
 	return options
 
 def parse_ctl(ctl_fn, options):
-''' Parse config file and return updated options dict
-
-
-'''
+	''' Parse config file and return updated options dict
+	
+	
+	'''
 
 	print >>sys.stderr, 'reading options from: %s'%ctl_fn
 	ctl_fh = open(ctl_fn, 'r')
@@ -124,11 +130,11 @@ def parse_ctl(ctl_fn, options):
 	return options
 
 def read_sites(sites_fn):
-''' Reads space delimited file and return list of sites to process.
+	''' Reads space delimited file and return list of sites to process.
 
 	Sites should be 0-indexed non-negative integers.
 
-'''
+	'''
 
 	if sites_fn.lower() == 'all':
 		return 'all'
@@ -136,9 +142,9 @@ def read_sites(sites_fn):
 	return map(int, ''.join(sites_fh.readlines()).split())
 
 def remove_gapped_sites(keep_sites, aln, seqID_pairs):
-''' From a list of sites, remove those with gaps and return a list.
+	''' From a list of sites, remove those with gaps and return a list.
 
-'''
+	'''
 
 	# this patch replaces 'all' keyword with site range
 	if keep_sites == 'all':
@@ -160,11 +166,11 @@ def remove_gapped_sites(keep_sites, aln, seqID_pairs):
 	return sorted(list(set(keep_sites) - remove_these))
 
 def get_jobname(vir_aln, host_aln):
-''' Get jobname from alignment filenames
+	''' Get jobname from alignment filenames
 	
 	No-extension basename concatenation
 
-'''
+	'''
 
 	return vir_aln.rsplit('/', 1)[1].rsplit('.phy', 1)[0] +\
 			'_' +\
@@ -172,13 +178,13 @@ def get_jobname(vir_aln, host_aln):
 
 # output
 def print_output(resObj, out_fn):
-''' Print information stats for each pair of sites in resObj
+	''' Print information stats for each pair of sites in resObj
 
 	resObj is a dict.
 		keys are tuples of sites
 		values are lists of stats
 
-'''
+	'''
 	outfh = open(out_fn, 'w')
 	print >>outfh, '\t'.join('Virus_Column', 'Mammal_Column',
 								'Vir_Entropy', 'Mam_Entropy', 'Joint_Entropy',
@@ -251,9 +257,7 @@ def main(options):
 	print >>sys.stderr, "done"
 
 if __name__ == "__main__":
-	#print "DEBUG MODE"
-	print "not ready yet"
-	print sys.argv
+	print "DBG:", sys.argv
 	options = getopts(sys.argv[1:])
 	main(options)
 
