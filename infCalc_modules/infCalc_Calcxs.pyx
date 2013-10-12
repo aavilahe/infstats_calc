@@ -42,8 +42,8 @@ cpdef tuple makeProbabilities(dict column_1, dict column_2, list seqID_pairs):
 	cdef int seqID_idx
 	for seqID_idx in range(num_seqIDs):
 		seqID_1, seqID_2 = seqID_pairs[seqID_idx]
-		symbols_1 = column_1[seqID_on1] # str
-		symbols_2 = column_2[seqID_on2] # str
+		symbols_1 = column_1[seqID_1] # str
+		symbols_2 = column_2[seqID_2] # str
 		#num_obs_1 = len(symbols_1)
 		#num_obs_2 = len(symbols_2)
 
