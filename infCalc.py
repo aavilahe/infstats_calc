@@ -16,6 +16,7 @@
 
 import sys
 from os import getenv
+from os.path import basename
 import getopt
 from math import isnan
 
@@ -96,11 +97,9 @@ def getopts(args):
 	else:
 		options['num_threads'] = int(options['num_threads'])
 	
-	print "DBG:", options.items()
 	if not set(['vir_aln', 'host_aln',
 			#'vir_sim', 'host_sim',
 			'vir_keep', 'host_keep', 'seqID_pairs']) <= set(options.keys()):
-			print "DBG:", 'here!'
 			sys.exit(usage)
 	
 	# print options
@@ -173,9 +172,9 @@ def get_jobname(vir_aln, host_aln):
 
 	'''
 
-	return vir_aln.rsplit('/', 1)[1].rsplit('.phy', 1)[0] +\
+	return basename(vir_aln).rsplit('.phy', 1)[0] +\
 			'_' +\
-			host_aln.rsplit('/', 1)[1].rsplit('.phy', 1)[0]
+			basename(host_aln).rsplit('.phy', 1)[0]
 
 # output
 def print_output(resObj, out_fn):
