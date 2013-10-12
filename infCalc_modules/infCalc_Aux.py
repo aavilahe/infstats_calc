@@ -9,23 +9,24 @@ import cPickle
 import sys
 
 class seqAln:
-	def __init__(self, num_seqs, num_cols, orgdb):
+	def __init__(self, num_seqs, num_cols):#, orgdb):
 		self.num_cols = int(num_cols)
 		self.num_seqs = int(num_seqs)
 		self.sites = [dict() for i in xrange(self.num_cols)] # list of dicts{key=seq_ident, value=subcol}
-		self.orgdb = orgdb # dict, key = seqid, value=orgname
+		#self.orgdb = orgdb # dict, key = seqid, value=orgname
 
 	def store(self, seq_ident, seq):
+		''' add sequence to alignment
+
+		'''
+
 		for pos, char in enumerate(seq):
-			if seq_ident not in self.orgdb:
-				sys.exit('%s not in %s'%(seq_ident, str(self.orgdb)))
-			orgid = self.orgdb[seq_ident]
-			if orgid in self.sites[pos]:
-				self.sites[pos][orgid] += char
+			if seq_ident in self.sites[pos]:
+				self.sites[pos][seq_ident] += char
 			else:
-				self.sites[pos][orgid] = char
-		
-	def get_taxa(self):
+				self.sites[pos][seq_ident] = char
+
+	def get_seqIDs(self):
 		return self.sites[0].keys()
 	
 	def get_site(self, i):
@@ -71,13 +72,17 @@ def read_sim(fh):
 	print >>sys.stderr, "sim read"	
 	return simObj
 
-def read_taxonPairs(fn, vir_orgs, host_orgs):
-	taxonPairs_tmp = list(read_org(open(fn, 'r')).items()) # hack to read tx pairs
-	taxonPairs = list()
-	vir_orgs = set(vir_orgs)
-	host_orgs = set(host_orgs)
-	for vo, ho in taxonPairs_tmp:
-		if vo in vir_orgs and ho in host_orgs:
-			taxonPairs += [(vo, ho)]
-	return taxonPairs
+def read_seqID_pairs(fn, vir_orgs, host_orgs):
+	''' Reads two-column tab-delimited file of paired seqIDs
+		and returns a list of tuples of seqIDs.
+
+	'''
+
+	seqID_pairs = list()
+	for line in open(fn, 'r'):
+		line = line.strip()
+		if '\t' in line and not line.startswith('#'):	
+			seqID_pairs += [ tuple(line.split('\t')[:2]) ]
+	
+	return seqID_pairs
 
