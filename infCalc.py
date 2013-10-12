@@ -251,7 +251,8 @@ def main(options):
 	print >>sys.stderr, "done"
 
 if __name__ == "__main__":
-	print "DEBUG MODE"
+	#print "DEBUG MODE"
+	print "not ready yet"
 	print sys.argv
 	options = getopts(sys.argv[1:])
 	main(options)
