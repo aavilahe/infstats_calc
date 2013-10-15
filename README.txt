@@ -10,7 +10,7 @@ Features:
 
 
 Top down refactor:
-	starting with main.. unbreaking the rest
-
-
+	DONE: starting with main.. unbreaking the rest
+	TODO: . make remove_gapped_sites() an option
+	      . figure out install
 
