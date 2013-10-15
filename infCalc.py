@@ -145,28 +145,28 @@ def read_sites(sites_fn):
 	sites_fh = open(sites_fn, 'r')
 	return map(int, ''.join(sites_fh.readlines()).split())
 
-def remove_gapped_sites(keep_sites, aln, seqID_pairs):
-	''' From a list of sites, remove those with gaps and return a list.
+def remove_gapped_sites(keep_sites, aln, seqIDs, gap_threshold=0.3):
+	''' From a list of sites, remove those with gaps above a
+		threshold and return a list.
 
 	'''
 
 	# this patch replaces 'all' keyword with site range
+	# this will be moved to read_sites()
 	if keep_sites == 'all':
 		keep_sites = range(aln.num_cols)
 
 	# remove gapped sites
 	remove_these = set()
 
-	# make a set of all taxons
-	taxonSet = set()
-	[ [ taxonSet.add(x) for x in (v,h)] for (v,h) in seqID_pairs ]
+	# for each aln, remove sites with more than X% gap in relevant seqs
 	for site_i in keep_sites:
 		col = aln.get_site(site_i)
-		for orgID in col.keys():
-			if '-' in col[orgID] and orgID in taxonSet:
-				#print 'removing site', site_i, 'because', orgID
-				remove_these.add(site_i)
-				break
+		filCol = dict([ (seqID, col[seqID]) for seqID in seqIDs ])
+		ngaps = ''.join(filCol.values()).count('-')
+		nseqs = float(len(filCol))
+		if ngaps / nseqs >= gap_threshold:
+			remove_these.add(site_i)
 	return sorted(list(set(keep_sites) - remove_these))
 
 def get_jobname(vir_aln, host_aln):
@@ -244,8 +244,10 @@ def main(options):
 	print "site lists loaded"
 
 	print >>sys.stderr, "DBG: remove_gapped_sites() necessary for 'all' keyword"
-	vir_keep = remove_gapped_sites(vir_keep, vir_aln, seqID_pairs)
-	host_keep = remove_gapped_sites(host_keep, host_aln, seqID_pairs)
+	vir_keep = remove_gapped_sites(vir_keep, vir_aln,
+						zip(*seqID_pairs)[0])
+	host_keep = remove_gapped_sites(host_keep, host_aln,
+						zip(*seqID_pairs)[1])
 	print "site lists degapped"
 
 	#DBG info
