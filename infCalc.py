@@ -44,19 +44,19 @@ def getopts(args):
 	optlist, args = getopt.getopt(args, 'ho:c:T:', 
 							['help', 'outdir=', 'control_file=',
 							'vir_aln=', 'host_aln=',
-							'vir_sim=', 'host_sim=',
+#							'vir_sim=', 'host_sim=',
 							'vir_keep=', 'host_keep=',
 							'seqID_pairs='])
 
 	options = dict()
 	usage = (
-				'usage: %s [-h | -c ctl_file | '+\
-				'--vir_aln=align1 --host_aln=align2 '+\
-				'--vir_sim=sim1 --host_sim=sim2 '+\
-				'--vir_keep=keep1 --host_keep=keep2 '+\
-				'--seqID_pairs=virushost.pair ] '+\
-				'[-o | --outdir directory] '+\
-				'[-T num_threads]'
+				'usage: %s [-h | -c ctl_file |\n'+\
+				'            --vir_aln=align1 --host_aln=align2\n'+\
+#				'            --vir_sim=sim1 --host_sim=sim2\n'+\
+				'            --vir_keep=keep1 --host_keep=keep2\n'+\
+				'            --seqID_pairs=virushost.pair ]\n'+\
+				'          [-o | --outdir directory]\n'+\
+				'          [-T num_threads]'
 			)% sys.argv[0]
 
 	# read command line
@@ -71,10 +71,10 @@ def getopts(args):
 			options['vir_aln'] = val
 		if opt == '--host_aln':
 			options['host_aln'] = val
-		if opt == '--vir_sim':
-			options['vir_sim'] = val
-		if opt == '--host_sim':
-			options['host_sim'] = val
+#		if opt == '--vir_sim':
+#			options['vir_sim'] = val
+#		if opt == '--host_sim':
+#			options['host_sim'] = val
 		if opt == '--vir_keep':
 			options['vir_keep'] = val
 		if opt == '--host_keep':
@@ -96,15 +96,19 @@ def getopts(args):
 		options['num_threads'] = 1 # multiprocessing module NOT loaded
 	else:
 		options['num_threads'] = int(options['num_threads'])
+	if 'host_keep' not in options:
+		options['host_keep'] = 'all'
+	if 'vir_keep' not in options:
+		options['vir_keep'] = 'all'
 	
 	if not set(['vir_aln', 'host_aln',
-			#'vir_sim', 'host_sim',
+#			'vir_sim', 'host_sim',
 			'vir_keep', 'host_keep', 'seqID_pairs']) <= set(options.keys()):
 			sys.exit(usage)
 	
 	# print options
-	print >>sys.stderr, 'running with options:'
-	[ sys.stderr.write('\t%s: %s\n'%(opt, val)) 
+	print 'running with options:'
+	[ sys.stdout.write('\t%s: %s\n'%(opt, val)) 
 					for opt, val in sorted(options.iteritems()) ]
 
 	return options
@@ -115,7 +119,7 @@ def parse_ctl(ctl_fn, options):
 	
 	'''
 
-	print >>sys.stderr, 'reading options from: %s'%ctl_fn
+	print 'reading options from: %s'%ctl_fn
 	ctl_fh = open(ctl_fn, 'r')
 	for line in ctl_fh:
 		line = line.strip()
@@ -227,22 +231,22 @@ def main(options):
 	#host_aln, host_orgdb = miAux.read_org_and_phy(options['host_aln'])
 	vir_aln = iC_A.read_phy(open(options['vir_aln'],'r'))
 	host_aln = iC_A.read_phy(open(options['host_aln'],'r'))
-	print >>sys.stderr, "alignments loaded"
+	print "alignments loaded"
 
 	## load virus-host pairings map
 	# load sequence pairings
 	seqID_pairs = iC_A.read_seqID_pairs(options['seqID_pairs'])
-	print >>sys.stderr, "virus-host pairings read"
+	print "virus-host pairings read"
 
-	print >>sys.stderr, "skipping site filtering"
-#	# load list of sites to compare
+	# load list of sites to compare
 	vir_keep = read_sites(options['vir_keep'])
 	host_keep = read_sites(options['host_keep'])
-	print >>sys.stderr, "site lists loaded"
+	print "site lists loaded"
 
+	print >>sys.stderr, "DBG: remove_gapped_sites() necessary for 'all' keyword"
 	vir_keep = remove_gapped_sites(vir_keep, vir_aln, seqID_pairs)
 	host_keep = remove_gapped_sites(host_keep, host_aln, seqID_pairs)
-	print >>sys.stderr, "site lists degapped"
+	print "site lists degapped"
 
 	#DBG info
 	print 'vir_keep (max) = %d; ncol = %d'%( sorted(vir_keep)[-1], vir_aln.num_cols)
@@ -251,13 +255,13 @@ def main(options):
 	# calculate info stats
 
 	resObj = doCalc(vir_aln, host_aln, vir_keep, host_keep, seqID_pairs)
-	print >>sys.stderr, "main calculations completed"
+	print "main calculations completed"
 
 	print_output(resObj, out_fn)
-	print >>sys.stderr, "done"
+	print "done"
 
 if __name__ == "__main__":
-	print "DBG:", sys.argv
+	print >>sys.stderr, "DBG: sys.argv:", sys.argv
 	options = getopts(sys.argv[1:])
 	main(options)
 
