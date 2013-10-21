@@ -106,6 +106,8 @@ def read_sim(fh):
 
 	'''
 
+	import cPickle
+
 	simObj =  cPickle.load(fh)
 	if len(simObj) == 0:
 		print >>sys.stderr, "sim load failed"
