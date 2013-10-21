@@ -1,47 +1,76 @@
 #!/usr/bin/env python
-''' alignment object
-	
-	and other methods...???
+''' infCalc_Aux.py -- Objects and functions for infCalc.py
+
+	class seqAln
+	read_phy()
+	read_seqID_pairs()
 
 '''
 
-import cPickle
+__author__ = 'Aram Avila-Herrera'
+__email__ = 'Aram.Avila-Herrera@ucsf.edu'
+
 import sys
+import re
 
 class seqAln:
-	def __init__(self, num_seqs, num_cols):#, orgdb):
+	''' seqAln -- A sequence alignment stored as a list of dicts.
+
+		The alignment is stored as a list of sites represented as dicts whose key is the sequence
+		identifier, and the value is the sequence at that site for that sequence.
+
+		eg:
+		seq1       ACGGF
+		seq2       ACGDF
+		seq3       ATGEE
+
+		site[0] := {seq1 : A, seq2: A, seq3: A}
+		site[1] := {seq1 : C, seq2: C, seq3: T}
+		site[2] := {seq1 : G, seq2: G, seq3: G}
+		
+	'''
+
+	def __init__(self, num_seqs, num_cols):
 		self.num_cols = int(num_cols)
 		self.num_seqs = int(num_seqs)
-		self.sites = [dict() for i in xrange(self.num_cols)] # list of dicts{key=seq_ident, value=subcol}
-		#self.orgdb = orgdb # dict, key = seqid, value=orgname
+		self.sites = [dict() for i in xrange(self.num_cols)] # list of dicts{key=seqID, symbol}
+		#self.orgdb = orgdb # dict{key=seqID; value=orgname}
 
-	def store(self, seq_ident, seq):
-		''' add sequence to alignment
+	def store(self, seqID, seq):
+		''' add a sequence to the alignment (one site at a time)
 
 		'''
 
 		for pos, char in enumerate(seq):
-			if seq_ident in self.sites[pos]:
-				self.sites[pos][seq_ident] += char
+			if seqID in self.sites[pos]:
+				self.sites[pos][seqID] += char
 			else:
-				self.sites[pos][seq_ident] = char
+				self.sites[pos][seqID] = char
 
 	def get_seqIDs(self):
 		return self.sites[0].keys()
 	
 	def get_site(self, i):
+		''' returns a site as a dict{key=seqID, symbol}
+
+		'''
+
 		return self.sites[i]
 	
 def read_phy(fh, orgdb=None):
+	''' reads phylip file and returns seqAln object.
+
+	'''
+
 	seqLine = False
 	for line in fh:
 		line = line.rstrip('\n\r')
 		if line == '':
 			continue
 		if seqLine:
-			seq_ident = line[:10].strip() # strip just in case
-			seq = line[10:].replace(' ', '')
-			aln.store(seq_ident, seq)
+			seqID = line[:10].strip()
+			seq = re.sub('\s+' ,'', line[10:])
+			aln.store(seqID, seq)
 		else:
 			num_seqs, num_cols = line.split()[:2]
 			aln = seqAln(num_seqs, num_cols)
@@ -49,6 +78,10 @@ def read_phy(fh, orgdb=None):
 	return aln
 
 def read_org(fh):
+	''' deprecated. -- reads seqID to organismID file
+
+	'''
+
 	orgdb = dict()
 	for line in fh:
 		line = line.rstrip('\n\r')
@@ -57,6 +90,10 @@ def read_org(fh):
 	return orgdb
 
 def read_org_and_phy(fn):
+	''' deprecated. -- reads phylip and orgdb file
+
+	'''
+
 	orgdb_fn = fn.rsplit('.',1)[0] + '.org_db'
 	orgdb_fh = open(orgdb_fn, 'r')
 	orgdb = read_org(orgdb_fh)
@@ -65,6 +102,10 @@ def read_org_and_phy(fn):
 	return aln, orgdb
 
 def read_sim(fh):
+	''' deprecated. -- reads pickled simulations (1000 alignments)
+
+	'''
+
 	simObj =  cPickle.load(fh)
 	if len(simObj) == 0:
 		print >>sys.stderr, "sim load failed"
