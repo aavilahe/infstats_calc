@@ -1,16 +1,13 @@
 #!/usr/bin/env python
-''' infCalc.py -- Estimates marginal and joint entropies for
-	pairs of alignment columns
+''' infCalc.py -- Calculates various information statistics
 
-	Calculates various information statistics based
-	on marginal and joint entropies
+	infCalc.py calculates various information statistics based
+	on marginal and joint entropies of pairs of protein
+	alignment columns.
 
-	Output is tab delimited
-
-	Cython optimized
-
-	!! Removed in-memory bootstrapping
-	!! Removing sequence grouping
+	Input: Two phylip alignmnents. Control file (optional).
+	Output: Tab delimited file of interprotein alignment columns
+			and their scores.
 
 '''
 
