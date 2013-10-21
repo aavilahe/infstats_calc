@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 ''' infCalc.py -- Estimates marginal and joint entropies for
 	pairs of alignment columns
 
