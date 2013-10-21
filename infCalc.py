@@ -11,13 +11,18 @@
 
 '''
 
+__author__ = 'Aram Avila-Herrera'
+__email__ = 'Aram.Avila-Herrera@ucsf.edu'
+
+
+
 import sys
 from os import getenv
 from os.path import basename
 import getopt
 from math import isnan
 
-# module path ... fix with egg install later?
+# module path ... not sure how to fix this yet
 #__SRC_PATH = '/home/aram/dev-src/infStats_calc/'
 __SRC_PATH = getenv("__SRC_PATH")
 sys.path.append(__SRC_PATH+'/'+'infCalc_modules')
