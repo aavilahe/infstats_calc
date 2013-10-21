@@ -1,6 +1,23 @@
-#!/usr/bin/python
-''' infCalc_Calcxs -- functions for estimating probability distributions,
-					entropies, and information based statistics
+#!/usr/bin/env cython
+''' infCalc_Calcxs -- estimate probability distributions, entropy, etc...
+
+	* Visible to python *
+	makeProbabilities()
+	calcStats()
+	sanityCheck()
+
+	* Invisible to python *
+	updateMarginal()
+	updateJoint()
+	calcH()
+
+	expand() 
+	expand2()
+
+/*
+	Author: Aram Avila-Herrera
+	Email: Aram.Avila-Herrera@ucsf.edu
+*/
 
 '''
 
@@ -12,7 +29,7 @@ cdef extern from "math.h":
 	double fmin(double, double)
 	double fmax(double, double)
 
-cdef double eps = 2e-6
+cdef double eps = 2e-6 # macheps
 cdef double cdef_float_nan = float('nan')
 
 cpdef tuple makeProbabilities(dict column_1, dict column_2, list seqID_pairs):
@@ -22,7 +39,7 @@ cpdef tuple makeProbabilities(dict column_1, dict column_2, list seqID_pairs):
 		Calculates joint distribution for pairs of symbols
 		in both columns
 
-		Force 1-to-1 relationship between sequences in different columns
+		Requires 1-to-1 relationship between sequences in different columns
 
 		seqID_pairs is a list of tuples containing seqIDs for first and second column
 		for each seqID_pair, the subcolumn is extracted and the prob distros are updated
