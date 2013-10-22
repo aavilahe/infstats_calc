@@ -13,15 +13,23 @@ Aram Avila-Herrera (Aram.Avila-Herrera at ucsf dot edu)
 
 INSTALL
 ========
-For now... just edit the helper script to export `__SRC_PATH`
+Requires Cython <http://docs.cython.org/src/quickstart/install.html>
+
+First build the cython module by running:
+```bash
+cd /my/path/to/infCalc/infCalc_modules/
+bash build_modules.sh
+```
+
+And for now... just edit the helper script `runInfCalc.sh` to export `__SRC_PATH`
 ```bash
 #export __SRC_PATH="/path/to/infstats"
-export __SRC_PATH="/path/to/where/you/downloaded/infCalc"
+export __SRC_PATH="/my/path/to/infCalc"
 ```
 
 and call normally, for example:
 ```bash
-cd /path/to/where/you/downloaded/infCalc/test/
+cd /my/path/to/infCalc/test_dir/
 ../runInfCalc.sh -c test.ctl
 ```
 
@@ -31,10 +39,9 @@ Files
 
 - runInfCalc.sh -- helper script until I figure out how to package this
 - infCalc.py -- the main script
-- infCalc_Modules/infCalc_Aux.py -- extra objects and functions
-- infCalc_Modules/infCalc_Calcxs.pyx -- extra cython functions
-
-- test/ -- directory with example files for a test run
+- infCalc_modules/infCalc_Aux.py -- extra objects and functions
+- infCalc_modules/infCalc_Calcxs.pyx -- extra cython functions
+- test_dir/ -- directory with example files for a test run
 
 
 NOTES
