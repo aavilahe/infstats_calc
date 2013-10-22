@@ -1,18 +1,20 @@
-#!/usr/bin/python
-''' infCalc.py -- Estimates marginal and joint entropies for
-	pairs of alignment columns
+#!/usr/bin/env python
+''' infCalc.py -- Calculates various information statistics
 
-	Calculates various information statistics based
-	on marginal and joint entropies
+	infCalc.py calculates various information statistics based
+	on marginal and joint entropies of pairs of protein
+	alignment columns.
 
-	Output is tab delimited
-
-	Cython optimized
-
-	!! Removed in-memory bootstrapping
-	!! Removing sequence grouping
+	Input: Two phylip alignmnents. Control file (optional).
+	Output: Tab delimited file of interprotein alignment columns
+			and their scores.
 
 '''
+
+__author__ = 'Aram Avila-Herrera'
+__email__ = 'Aram.Avila-Herrera@ucsf.edu'
+
+
 
 import sys
 from os import getenv
@@ -20,7 +22,7 @@ from os.path import basename
 import getopt
 from math import isnan
 
-# module path ... fix with egg install later?
+# module path ... not sure how to fix this yet
 #__SRC_PATH = '/home/aram/dev-src/infStats_calc/'
 __SRC_PATH = getenv("__SRC_PATH")
 sys.path.append(__SRC_PATH+'/'+'infCalc_modules')
@@ -145,28 +147,28 @@ def read_sites(sites_fn):
 	sites_fh = open(sites_fn, 'r')
 	return map(int, ''.join(sites_fh.readlines()).split())
 
-def remove_gapped_sites(keep_sites, aln, seqID_pairs):
-	''' From a list of sites, remove those with gaps and return a list.
+def remove_gapped_sites(keep_sites, aln, seqIDs, gap_threshold=0.3):
+	''' From a list of sites, remove those with gaps above a
+		threshold and return a list.
 
 	'''
 
 	# this patch replaces 'all' keyword with site range
+	# this will be moved to read_sites()
 	if keep_sites == 'all':
 		keep_sites = range(aln.num_cols)
 
 	# remove gapped sites
 	remove_these = set()
 
-	# make a set of all taxons
-	taxonSet = set()
-	[ [ taxonSet.add(x) for x in (v,h)] for (v,h) in seqID_pairs ]
+	# for each aln, remove sites with more than X% gap in relevant seqs
 	for site_i in keep_sites:
 		col = aln.get_site(site_i)
-		for orgID in col.keys():
-			if '-' in col[orgID] and orgID in taxonSet:
-				#print 'removing site', site_i, 'because', orgID
-				remove_these.add(site_i)
-				break
+		filCol = dict([ (seqID, col[seqID]) for seqID in seqIDs ])
+		ngaps = ''.join(filCol.values()).count('-')
+		nseqs = float(len(filCol))
+		if ngaps / nseqs >= gap_threshold:
+			remove_these.add(site_i)
 	return sorted(list(set(keep_sites) - remove_these))
 
 def get_jobname(vir_aln, host_aln):
@@ -244,8 +246,10 @@ def main(options):
 	print "site lists loaded"
 
 	print >>sys.stderr, "DBG: remove_gapped_sites() necessary for 'all' keyword"
-	vir_keep = remove_gapped_sites(vir_keep, vir_aln, seqID_pairs)
-	host_keep = remove_gapped_sites(host_keep, host_aln, seqID_pairs)
+	vir_keep = remove_gapped_sites(vir_keep, vir_aln,
+						zip(*seqID_pairs)[0])
+	host_keep = remove_gapped_sites(host_keep, host_aln,
+						zip(*seqID_pairs)[1])
 	print "site lists degapped"
 
 	#DBG info
