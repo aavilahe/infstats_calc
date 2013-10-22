@@ -34,7 +34,7 @@ Files
 - infCalc_Modules/infCalc_Aux.py -- extra objects and functions
 - infCalc_Modules/infCalc_Calcxs.pyx -- extra cython functions
 
-test/ -- directory with example files for a test run
+- test/ -- directory with example files for a test run
 
 
 NOTES
