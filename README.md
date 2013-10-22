@@ -39,19 +39,19 @@ test/ -- directory with example files for a test run
 
 NOTES
 ========
-	parallelized in-mem p-value calculation removed
-	under-the-hood functions cythonized
+- parallelized in-mem p-value calculation removed
+- under-the-hood functions cythonized
 
 
 -----------------
 Tasks:
 -----------------
--[x] remove sims
--[x] remove orgdb loading (for sequence grouping)
--[x] remove parallelized bootstrapping code
--[x] remove grouping/reweighting
--[x] add docstrings
--[x] starting with main.. unbreak what is left
--[ ] make remove_gapped_sites() an option
--[ ] figure out how to package
+- [x] remove sims
+- [x] remove orgdb loading (for sequence grouping)
+- [x] remove parallelized bootstrapping code
+- [x] remove grouping/reweighting
+- [x] add docstrings
+- [x] starting with main.. unbreak what is left
+- [ ] make remove_gapped_sites() an option
+- [ ] figure out how to package
 
