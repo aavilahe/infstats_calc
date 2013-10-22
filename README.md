@@ -19,10 +19,10 @@ For now... just edit the helper script to export `__SRC_PATH`
 export __SRC_PATH="/path/to/where/you/downloaded/infCalc"
 ```
 
-and call normally
+and call normally, for example:
 ```bash
-/path/to/dir/runInfCalc.sh [ args ]
-
+cd /path/to/where/you/downloaded/infCalc/test/
+../runInfCalc.sh -c test.ctl
 ```
 
 
