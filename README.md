@@ -13,20 +13,21 @@ Aram Avila-Herrera (Aram.Avila-Herrera at ucsf dot edu)
 
 INSTALL
 ========
-Requires Cython <http://docs.cython.org/src/quickstart/install.html>
+If the cython module is built correctly for your architecture 
+(`x86_64`), skip **step 1**.
 
-First build the cython module by running:
+1. Build cythonized module 
+Requires Cython <http://docs.cython.org/src/quickstart/install.html>
 ```bash
 cd /my/path/to/infCalc/infCalc_modules/
 bash build_modules.sh
 ```
 
-And for now... just edit the helper script `runInfCalc.sh` to export `__SRC_PATH`
+2. For now... just edit the helper script `runInfCalc.sh` to export `__SRC_PATH`
 ```bash
 #export __SRC_PATH="/path/to/infstats"
 export __SRC_PATH="/my/path/to/infCalc"
 ```
-
 and call normally, for example:
 ```bash
 cd /my/path/to/infCalc/test_dir/
