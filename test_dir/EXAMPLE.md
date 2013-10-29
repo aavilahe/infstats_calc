@@ -31,7 +31,7 @@ A Phyllip alignment file.
   - The second `%d` is the number of columns
 - Lines 2 to last: One sequence per line.
   - First 10 characters are sequence identifier.
-  - Characters 10 to EOL are sequence
+  - Characters 11 to EOL are sequence
 - For compatibility, only the first 8 chars are used in sequence identifier (9, 10 are spaces).
 - Whitespace is stripped from sequence
 
