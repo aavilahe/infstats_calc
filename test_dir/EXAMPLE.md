@@ -21,19 +21,19 @@ Run `infCalc.py` without arguments for help
 - Unused options are ignored
 - Command line options override control file
 - Full paths are recommended
-  (eg. `/path/to/data/foo/bar/baz.phy might be different from `foo/bar/baz.phy`)
+  (eg. `/path/to/data/foo/bar/baz.phy` might be different from `foo/bar/baz.phy`)
 
 #### [vir|host].phy ####
 A Phyllip alignment file.
 
-- First line is ` %d %d`.
-    The first `%d` is the number of sequences
-    The second `%d` is the number of columns
+- First line is a space followed by `%d %d'`.
+  - The first `%d` is the number of sequences
+  - The second `%d` is the number of columns
 - Lines 2 to last: One sequence per line.
-    First 10 characters are sequence identifier.
-    Characters 10 to EOL are sequence
-- Whitespace is stripped from sequence
+  - First 10 characters are sequence identifier.
+  - Characters 10 to EOL are sequence
 - For compatibility, only the first 8 chars are used in sequence identifier (9, 10 are spaces).
+- Whitespace is stripped from sequence
 
 
 
