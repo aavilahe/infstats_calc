@@ -57,8 +57,8 @@ def getopts(args):
 #				'            --vir_sim=sim1 --host_sim=sim2\n'+\
 				'            --vir_keep=keep1 --host_keep=keep2\n'+\
 				'            --seqID_pairs=virushost.pair ]\n'+\
-				'          [-o | --outdir directory]\n'+\
-				'          [-T num_threads]'
+				'          [-o | --outdir directory]\n'#+\
+#				'          [-T num_threads]'
 			)% sys.argv[0]
 
 	# read command line
