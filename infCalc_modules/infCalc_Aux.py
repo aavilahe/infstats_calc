@@ -129,3 +129,18 @@ def read_seqID_pairs(fn):
 	
 	return seqID_pairs
 
+def keep_common_seqID_pairs(seqID_pairs, left_seqIDs, right_seqIDs):
+	''' Returns list of seqID_pairs in both left_seqIDs and right_seqIDs
+
+	'''
+	
+	seqIDs_sl = set(left_seqIDs)
+	seqIDs_sr = set(right_seqIDs)
+	
+	common_seqIDs = [ (seqID_l, seqID_r) for (seqID_l, seqID_r) in seqID_pairs
+						if seqID_l in seqIDs_sl and seqID_r in seqIDs_sr ]
+	return common_seqIDs
+	
+
+	
+

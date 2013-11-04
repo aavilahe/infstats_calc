@@ -238,6 +238,8 @@ def main(options):
 	## load virus-host pairings map
 	# load sequence pairings
 	seqID_pairs = iC_A.read_seqID_pairs(options['seqID_pairs'])
+	seqID_pairs = iC_A.keep_common_seqID_pairs(seqID_pairs,
+								vir_aln.get_seqIDs(), host_aln.get_seqIDs())
 	print "virus-host pairings read"
 
 	# load list of sites to compare
