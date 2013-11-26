@@ -188,47 +188,29 @@ def doCalc(vir_aln, host_aln, vir_keep, host_keep, seqID_pairs):
 	return stats
 
 def main(options):
-	# make output names
+	# Make output names
 	jobname = get_jobname(options['vir_aln'], options['host_aln'])
 	out_fn = options['outdir'] + '/' + jobname + '.out'
 
-	# load alignments
-	#vir_aln, vir_orgdb = miAux.read_org_and_phy(options['vir_aln'])
-	#host_aln, host_orgdb = miAux.read_org_and_phy(options['host_aln'])
-	vir_aln = iC_A.read_phy(open(options['vir_aln'],'r'))
-	host_aln = iC_A.read_phy(open(options['host_aln'],'r'))
-	print "alignments loaded"
-
-	## load virus-host pairings map
-	# load sequence pairings
-	seqID_pairs = iC_A.read_seqID_pairs(options['seqID_pairs'])
-	seqID_pairs = iC_A.keep_common_seqID_pairs(seqID_pairs,
-								vir_aln.get_seqIDs(), host_aln.get_seqIDs())
-	print "virus-host pairings read"
-
-	# load list of sites to compare
-	vir_keep = iC_A.read_sites(options['vir_keep'], vir_aln.num_cols)
-	host_keep = iC_A.read_sites(options['host_keep'], host_aln.num_cols)
-	print "site lists loaded"
-
-	print >>sys.stderr, "DBG: remove_gapped_sites() necessary for 'all' keyword"
-	vir_keep = iC_A.remove_gapped_sites(vir_keep, vir_aln,
-						zip(*seqID_pairs)[0])
-	host_keep = iC_A.remove_gapped_sites(host_keep, host_aln,
-						zip(*seqID_pairs)[1])
-	print "site lists degapped"
+	(vir_aln, host_aln,
+	vir_keep, host_keep,
+	seqID_pairs) = iC_A.load_all_input(options)
 
 	#DBG info
-	print 'vir_keep (max) = %d; ncol = %d'%( sorted(vir_keep)[-1], vir_aln.num_cols)
-	print 'host_keep (max) = %d; ncol = %d'%( sorted(host_keep)[-1], host_aln.num_cols)
+	print "DBG: last column in vir_keep = [ %d ]" % max(vir_keep)
+	print "DBG: last column in host_keep = [ %d ]" % max(host_keep)
+	print "DBG: num columns in vir_aln = [ %d ]" % vir_aln.num_cols
+	print "DBG: num columns in host_aln = [ %d ]" % host_aln.num_cols
+	print "DBG: num columns in vir_keep = [ %d ]" % len(vir_keep)
+	print "DBG: num columns in host_keep = [ %d ]" % len(host_keep)
 
-	# calculate info stats
-
+	# Calculate info stats
+	print "Main calculations...",
 	resObj = doCalc(vir_aln, host_aln, vir_keep, host_keep, seqID_pairs)
-	print "main calculations completed"
+	print "Completed!"
 
 	print_output(resObj, out_fn)
-	print "done"
+	print "Done!"
 
 if __name__ == "__main__":
 	print >>sys.stderr, "DBG: sys.argv:", sys.argv

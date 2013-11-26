@@ -156,8 +156,7 @@ def read_sites(sites_fn, aln_num_cols):
 	return map(int, ''.join(sites_fh.readlines()).split())
 
 def remove_gapped_sites(keep_sites, aln, seqIDs, gap_threshold=0.3):
-	''' From a list of sites, remove those with gaps above a
-		threshold and return a list.
+	''' Remove sites with %gap >= threshold from keep_sites, return a list.
 
 	'''
 
@@ -173,5 +172,36 @@ def remove_gapped_sites(keep_sites, aln, seqIDs, gap_threshold=0.3):
 		if ngaps / nseqs >= gap_threshold:
 			remove_these.add(site_i)
 	return sorted(list(set(keep_sites) - remove_these))
+
+def load_all_input(options):
+	''' load alignments, sites, seqID_pairs and return them in a tuple
+
+	'''
+
+	print "Loading alignments...",
+	vir_aln = read_phy(open(options['vir_aln'],'r'))
+	host_aln = read_phy(open(options['host_aln'],'r'))
+	print "Loaded!"
+
+	print "Loading sequence pairings...",
+	seqID_pairs = read_seqID_pairs(options['seqID_pairs'])
+	seqID_pairs = keep_common_seqID_pairs(seqID_pairs,
+								vir_aln.get_seqIDs(), host_aln.get_seqIDs())
+	print "seqID_pairs Loaded!"
+
+	print "reading sites to be analyzed...",
+	vir_keep = read_sites(options['vir_keep'], vir_aln.num_cols)
+	host_keep = read_sites(options['host_keep'], host_aln.num_cols)
+	print "site lists Loaded!"
+
+	# make this an option..
+	print "Removing gapped sites...",
+	vir_keep = remove_gapped_sites(vir_keep, vir_aln,
+						zip(*seqID_pairs)[0])
+	host_keep = remove_gapped_sites(host_keep, host_aln,
+						zip(*seqID_pairs)[1])
+	print "gapped sites Removed!"
+	
+	return (vir_aln, host_aln, vir_keep, host_keep, seqID_pairs)
 
 
