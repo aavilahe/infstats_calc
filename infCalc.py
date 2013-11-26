@@ -135,7 +135,7 @@ def parse_ctl(ctl_fn, options):
 	
 	return options
 
-def read_sites(sites_fn):
+def read_sites(sites_fn, aln_num_cols):
 	''' Reads space delimited file and return list of sites to process.
 
 	Sites should be 0-indexed non-negative integers.
@@ -143,7 +143,7 @@ def read_sites(sites_fn):
 	'''
 
 	if sites_fn.lower() == 'all':
-		return 'all'
+		return range(aln_num_cols)
 	sites_fh = open(sites_fn, 'r')
 	return map(int, ''.join(sites_fh.readlines()).split())
 
@@ -152,11 +152,6 @@ def remove_gapped_sites(keep_sites, aln, seqIDs, gap_threshold=0.3):
 		threshold and return a list.
 
 	'''
-
-	# this patch replaces 'all' keyword with site range
-	# this will be moved to read_sites()
-	if keep_sites == 'all':
-		keep_sites = range(aln.num_cols)
 
 	# remove gapped sites
 	remove_these = set()
@@ -243,8 +238,8 @@ def main(options):
 	print "virus-host pairings read"
 
 	# load list of sites to compare
-	vir_keep = read_sites(options['vir_keep'])
-	host_keep = read_sites(options['host_keep'])
+	vir_keep = read_sites(options['vir_keep'], vir_aln.num_cols)
+	host_keep = read_sites(options['host_keep'], host_aln.num_cols)
 	print "site lists loaded"
 
 	print >>sys.stderr, "DBG: remove_gapped_sites() necessary for 'all' keyword"
