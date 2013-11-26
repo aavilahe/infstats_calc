@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-''' infCalc_Aux.py -- Objects and functions for infCalc.py
+''' infCalc_Aux.py -- Objects and alignment loading functions for infCalc.py
 
 	class seqAln
 	read_phy()
@@ -143,4 +143,35 @@ def keep_common_seqID_pairs(seqID_pairs, left_seqIDs, right_seqIDs):
 	
 
 	
+def read_sites(sites_fn, aln_num_cols):
+	''' Reads space delimited file and return list of sites to process.
+
+	Sites should be 0-indexed non-negative integers.
+
+	'''
+
+	if sites_fn.lower() == 'all':
+		return range(aln_num_cols)
+	sites_fh = open(sites_fn, 'r')
+	return map(int, ''.join(sites_fh.readlines()).split())
+
+def remove_gapped_sites(keep_sites, aln, seqIDs, gap_threshold=0.3):
+	''' From a list of sites, remove those with gaps above a
+		threshold and return a list.
+
+	'''
+
+	# remove gapped sites
+	remove_these = set()
+
+	# for each aln, remove sites with more than X% gap in relevant seqs
+	for site_i in keep_sites:
+		col = aln.get_site(site_i)
+		filCol = dict([ (seqID, col[seqID]) for seqID in seqIDs ])
+		ngaps = ''.join(filCol.values()).count('-')
+		nseqs = float(len(filCol))
+		if ngaps / nseqs >= gap_threshold:
+			remove_these.add(site_i)
+	return sorted(list(set(keep_sites) - remove_these))
+
 
