@@ -194,8 +194,7 @@ def load_all_input(options):
 	host_keep = read_sites(options['host_keep'], host_aln.num_cols)
 	print "site lists Loaded!"
 
-	# make this an option..
-	print "Removing gapped sites...",
+	print "Removing sites with %%gap >= %f ..." % options['remove_gapped'],
 	vir_keep = remove_gapped_sites(vir_keep, vir_aln,
 						zip(*seqID_pairs)[0])
 	host_keep = remove_gapped_sites(host_keep, host_aln,

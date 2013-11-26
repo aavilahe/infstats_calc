@@ -43,25 +43,29 @@ def getopts(args):
 
 	'''
 
-	optlist, args = getopt.getopt(args, 'ho:c:T:', 
+	optlist, args = getopt.getopt(args, 'ho:c:', 
 							['help', 'outdir=', 'control_file=',
 							'vir_aln=', 'host_aln=',
-#							'vir_sim=', 'host_sim=',
 							'vir_keep=', 'host_keep=',
-							'seqID_pairs='])
+							'remove_gapped=',
+							'seqID_pairs='
+#							'vir_sim=', 'host_sim=',
+							])
 
 	options = dict()
 	usage = (
-				'usage: %s [-h | -c ctl_file |\n'+\
+				'usage: %s [ -h | --help | -c ctl_file |\n'+\
 				'            --vir_aln=align1 --host_aln=align2\n'+\
-#				'            --vir_sim=sim1 --host_sim=sim2\n'+\
-				'            --vir_keep=keep1 --host_keep=keep2\n'+\
 				'            --seqID_pairs=virushost.pair ]\n'+\
-				'          [-o | --outdir directory]\n'#+\
-#				'          [-T num_threads]'
+				'          [ --vir_keep=keep1 ]\n'+\
+				'          [ --host_keep=keep2 ]\n'+\
+				'          [ --remove_gapped=%%gaps ]\n'+\
+				'          [ -o | --outdir directory ]\n'#+\
+#				'            --vir_sim=sim1 --host_sim=sim2\n'+\
+#				'          [ -T num_threads ]'
 			)% sys.argv[0]
 
-	# read command line
+	# Read command line
 	for opt, val in optlist:
 		if opt in ('-h', '--help'):
 			sys.exit(usage)
@@ -73,42 +77,55 @@ def getopts(args):
 			options['vir_aln'] = val
 		if opt == '--host_aln':
 			options['host_aln'] = val
-#		if opt == '--vir_sim':
-#			options['vir_sim'] = val
-#		if opt == '--host_sim':
-#			options['host_sim'] = val
 		if opt == '--vir_keep':
 			options['vir_keep'] = val
 		if opt == '--host_keep':
 			options['host_keep'] = val
 		if opt == '--seqID_pairs':
 			options['seqID_pairs'] = val
-		if opt == '-T':
-			options['num_threads'] = val
-	
-	# read control file
+		if opt == '--remove_gapped':
+			options['remove_gapped'] = float(val)
+####### Deprecated options ########
+#		if opt == '--vir_sim':
+#			options['vir_sim'] = val
+#		if opt == '--host_sim':
+#			options['host_sim'] = val
+#		if opt == '-T':
+#			options['num_threads'] = int(val)
+#################################
+
+	# Read control file
 	if 'ctl' in options:
 		options = parse_ctl(options['ctl'], options)
 
-	# set defaults
+	# Set defaults
 	if 'outdir' not in options:
 		options['outdir'] = './'
-	if 'num_threads' not in options:
-		#options['num_threads'] = min(cpu_count() / 2, 1)
-		options['num_threads'] = 1 # multiprocessing module NOT loaded
-	else:
-		options['num_threads'] = int(options['num_threads'])
+
+####### num_threads is deprecated #######
+#	if 'num_threads' not in options:
+#		#options['num_threads'] = min(cpu_count() / 2, 1)
+#		options['num_threads'] = 1 # multiprocessing module NOT loaded
+#	else:
+#		options['num_threads'] = int(options['num_threads'])
+#########################################
+
 	if 'host_keep' not in options:
 		options['host_keep'] = 'all'
 	if 'vir_keep' not in options:
 		options['vir_keep'] = 'all'
+
+	if 'remove_gapped' not in options:
+		options['remove_gapped'] = 0.3
+		print "remove_gapped not set, assumed default %f" % options['remove_gapped']
 	
+	# Check that minimum requirements are met
 	if not set(['vir_aln', 'host_aln',
-#			'vir_sim', 'host_sim',
+#			'vir_sim', 'host_sim', # Deprecated
 			'vir_keep', 'host_keep', 'seqID_pairs']) <= set(options.keys()):
 			sys.exit(usage)
 	
-	# print options
+	# Print options
 	print 'running with options:'
 	[ sys.stdout.write('\t%s: %s\n'%(opt, val)) 
 					for opt, val in sorted(options.iteritems()) ]
