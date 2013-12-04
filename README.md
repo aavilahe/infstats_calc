@@ -56,6 +56,7 @@ You may skip this step if the included `infCalcxs.so` is already compiled for yo
 - [x] remove grouping/reweighting
 - [x] add docstrings
 - [x] starting with main.. unbreak what is left
-- [ ] make remove_gapped_sites() an option
+- [x] make remove_gapped_sites() an option
+- [ ] add sequence weighting
 - [ ] figure out how to package
 
