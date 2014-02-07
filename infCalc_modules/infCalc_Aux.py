@@ -196,9 +196,9 @@ def load_all_input(options):
 
 	print "Removing sites with %%gap >= %f ..." % options['remove_gapped'],
 	vir_keep = remove_gapped_sites(vir_keep, vir_aln,
-						zip(*seqID_pairs)[0])
+						zip(*seqID_pairs)[0], options['remove_gapped'])
 	host_keep = remove_gapped_sites(host_keep, host_aln,
-						zip(*seqID_pairs)[1])
+						zip(*seqID_pairs)[1], options['remove_gapped'])
 	print "gapped sites Removed!"
 	
 	return (vir_aln, host_aln, vir_keep, host_keep, seqID_pairs)
