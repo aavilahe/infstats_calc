@@ -1,6 +1,6 @@
 ## infCalc.py ##
 
-infCalc.py is simple tool that calculates various information-based
+infCalc.py is simple script that calculates various information-based
 statistics for pairs of columns between two protein alignments.
 
 
@@ -10,22 +10,22 @@ Aram Avila-Herrera (Aram.Avila-Herrera at ucsf dot edu)
 
 
 ## Install ##
-Install anywhere you have permission (eg. `~/path/to/infstats_calc`).
+Install anywhere you have permission (eg. `~/path/to/infCalc`).
 
 1. **Compile the `infCalc_Calcxs` module.**
 Requires cython: *<http://docs.cython.org/src/quickstart/install.html>*.
 You may skip this step if the included `infCalcxs.so` is already compiled for your system.
 
 	```bash
-	cd ~/path/to/infstats_calc/infCalc_modules/
+	cd ~/path/to/infCalc/infCalc_modules/
 	bash build_modules.sh
 	```
 
 2. **Edit the helper script.** Edit `__SRC_PATH` in `runInfCalc.sh` to point to `~/path/to/infCalc`
 
 	```bash
-	#export __SRC_PATH="/arams/path/to/infstats"
-	export __SRC_PATH="~/path/to/infstats_calc"
+	#export __SRC_PATH="/arams/path/to/infCalc"
+	export __SRC_PATH="~/path/to/infCalc"
 	```
 	
 	Call `runInfCalc.sh` from the install directory or place in your `${PATH}`
@@ -33,7 +33,7 @@ You may skip this step if the included `infCalcxs.so` is already compiled for yo
 	
 	```bash
 	# let's try the test example
-	cd ~/path/to/infstats_calc/test_dir/
+	cd ~/path/to/infCalc/test_dir/
 	../runInfCalc.sh -c test.ctl
 	# or after placing runInfCalc.sh in ${PATH}
 	runInfCalc.sh -c test.ctl
@@ -50,13 +50,6 @@ You may skip this step if the included `infCalcxs.so` is already compiled for yo
 
 -----------------
 ##### TODO: #####
-- [x] remove sims
-- [x] remove orgdb loading (for sequence grouping)
-- [x] remove parallelized bootstrapping code
-- [x] remove grouping/reweighting
-- [x] add docstrings
-- [x] starting with main.. unbreak what is left
-- [x] make remove_gapped_sites() an option
 - [ ] add sequence weighting
-- [ ] figure out how to package
+- [ ] package properly
 
