@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-''' infCalc_Aux.py -- Objects and functions for infCalc.py
+''' infCalc_Aux.py -- Objects and alignment loading functions for infCalc.py
 
 	class seqAln
 	read_phy()
@@ -128,4 +128,79 @@ def read_seqID_pairs(fn):
 			seqID_pairs += [ tuple(line.split('\t')[:2]) ]
 	
 	return seqID_pairs
+
+def keep_common_seqID_pairs(seqID_pairs, left_seqIDs, right_seqIDs):
+	''' Returns list of seqID_pairs in both left_seqIDs and right_seqIDs
+
+	'''
+	
+	seqIDs_sl = set(left_seqIDs)
+	seqIDs_sr = set(right_seqIDs)
+	
+	common_seqIDs = [ (seqID_l, seqID_r) for (seqID_l, seqID_r) in seqID_pairs
+						if seqID_l in seqIDs_sl and seqID_r in seqIDs_sr ]
+	return common_seqIDs
+	
+
+	
+def read_sites(sites_fn, aln_num_cols):
+	''' Reads space delimited file and return list of sites to process.
+
+	Sites should be 0-indexed non-negative integers.
+
+	'''
+
+	if sites_fn.lower() == 'all':
+		return range(aln_num_cols)
+	sites_fh = open(sites_fn, 'r')
+	return map(int, ''.join(sites_fh.readlines()).split())
+
+def remove_gapped_sites(keep_sites, aln, seqIDs, gap_threshold=0.3):
+	''' Remove sites with %gap >= threshold from keep_sites, return a list.
+
+	'''
+
+	# remove gapped sites
+	remove_these = set()
+
+	# for each aln, remove sites with more than X% gap in relevant seqs
+	for site_i in keep_sites:
+		col = aln.get_site(site_i)
+		filCol = dict([ (seqID, col[seqID]) for seqID in seqIDs ])
+		ngaps = ''.join(filCol.values()).count('-')
+		nseqs = float(len(filCol))
+		if ngaps / nseqs >= gap_threshold:
+			remove_these.add(site_i)
+	return sorted(list(set(keep_sites) - remove_these))
+
+def load_all_input(options):
+	''' load alignments, sites, seqID_pairs and return them in a tuple
+
+	'''
+
+	print "Loading alignments...",
+	vir_aln = read_phy(open(options['vir_aln'],'r'))
+	host_aln = read_phy(open(options['host_aln'],'r'))
+	print "Loaded!"
+
+	print "Loading sequence pairings...",
+	seqID_pairs = read_seqID_pairs(options['seqID_pairs'])
+	seqID_pairs = keep_common_seqID_pairs(seqID_pairs,
+								vir_aln.get_seqIDs(), host_aln.get_seqIDs())
+	print "seqID_pairs Loaded!"
+
+	print "reading sites to be analyzed...",
+	vir_keep = read_sites(options['vir_keep'], vir_aln.num_cols)
+	host_keep = read_sites(options['host_keep'], host_aln.num_cols)
+	print "site lists Loaded!"
+
+	print "Removing sites with %%gap >= %f ..." % options['remove_gapped'],
+	vir_keep = remove_gapped_sites(vir_keep, vir_aln,
+						zip(*seqID_pairs)[0], options['remove_gapped'])
+	host_keep = remove_gapped_sites(host_keep, host_aln,
+						zip(*seqID_pairs)[1], options['remove_gapped'])
+	print "gapped sites Removed!"
+	
+	return (vir_aln, host_aln, vir_keep, host_keep, seqID_pairs)
+
 

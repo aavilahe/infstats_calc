@@ -1,57 +1,55 @@
-infCalc.py
-==========
+## infCalc.py ##
 
-infCalc.py is simple tool that calculates various information-based
+infCalc.py is simple script that calculates various information-based
 statistics for pairs of columns between two protein alignments.
 
 
-Authors
-=========
+## Authors ##
 
 Aram Avila-Herrera (Aram.Avila-Herrera at ucsf dot edu)
 
 
-INSTALL
-========
-For now... just edit the helper script to export `__SRC_PATH`
-```bash
-#export __SRC_PATH="/path/to/infstats"
-export __SRC_PATH="/path/to/where/you/downloaded/infCalc"
-```
+## Install ##
+Install anywhere you have permission (eg. `~/path/to/infCalc`).
 
-and call normally, for example:
-```bash
-cd /path/to/where/you/downloaded/infCalc/test/
-../runInfCalc.sh -c test.ctl
-```
+1. **Compile the `infCalc_Calcxs` module.**
+Requires cython: *<http://docs.cython.org/src/quickstart/install.html>*.
+You may skip this step if the included `infCalcxs.so` is already compiled for your system.
+
+	```bash
+	cd ~/path/to/infCalc/infCalc_modules/
+	bash build_modules.sh
+	```
+
+2. **Edit the helper script.** Edit `__SRC_PATH` in `runInfCalc.sh` to point to `~/path/to/infCalc`
+
+	```bash
+	#export __SRC_PATH="/arams/path/to/infCalc"
+	export __SRC_PATH="~/path/to/infCalc"
+	```
+	
+	Call `runInfCalc.sh` from the install directory or place in your `${PATH}`
+	to call normally.	
+	
+	```bash
+	# let's try the test example
+	cd ~/path/to/infCalc/test_dir/
+	../runInfCalc.sh -c test.ctl
+	# or after placing runInfCalc.sh in ${PATH}
+	runInfCalc.sh -c test.ctl
+	```
 
 
-Files
-=========
+## Files ##
 
 - runInfCalc.sh -- helper script until I figure out how to package this
 - infCalc.py -- the main script
-- infCalc_Modules/infCalc_Aux.py -- extra objects and functions
-- infCalc_Modules/infCalc_Calcxs.pyx -- extra cython functions
-
-- test/ -- directory with example files for a test run
-
-
-NOTES
-========
-- parallelized in-mem p-value calculation removed
-- under-the-hood functions cythonized
-
+- infCalc_modules/infCalc_Aux.py -- parsing functions (python)
+- infCalc_modules/infCalc_Calcxs.pyx -- functions for probabilities and information stats (cython)
+- test_dir/ -- directory with example files for a test run
 
 -----------------
-Tasks:
------------------
-- [x] remove sims
-- [x] remove orgdb loading (for sequence grouping)
-- [x] remove parallelized bootstrapping code
-- [x] remove grouping/reweighting
-- [x] add docstrings
-- [x] starting with main.. unbreak what is left
-- [ ] make remove_gapped_sites() an option
-- [ ] figure out how to package
+##### TODO: #####
+- [ ] add sequence weighting
+- [ ] package properly
 

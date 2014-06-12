@@ -1,0 +1,5 @@
+#runInfCalc.sh
+REFERENCE_ONLY/**
+infCalc_modules/build/
+infCalc_modules/infCalc_Aux.pyc
+infCalc_modules/infCalc_Calcxs.c

@@ -43,25 +43,29 @@ def getopts(args):
 
 	'''
 
-	optlist, args = getopt.getopt(args, 'ho:c:T:', 
+	optlist, args = getopt.getopt(args, 'ho:c:', 
 							['help', 'outdir=', 'control_file=',
 							'vir_aln=', 'host_aln=',
-#							'vir_sim=', 'host_sim=',
 							'vir_keep=', 'host_keep=',
-							'seqID_pairs='])
+							'remove_gapped=',
+							'seqID_pairs='
+#							'vir_sim=', 'host_sim=',
+							])
 
 	options = dict()
 	usage = (
-				'usage: %s [-h | -c ctl_file |\n'+\
+				'usage: %s [ -h | --help | -c ctl_file |\n'+\
 				'            --vir_aln=align1 --host_aln=align2\n'+\
-#				'            --vir_sim=sim1 --host_sim=sim2\n'+\
-				'            --vir_keep=keep1 --host_keep=keep2\n'+\
 				'            --seqID_pairs=virushost.pair ]\n'+\
-				'          [-o | --outdir directory]\n'+\
-				'          [-T num_threads]'
+				'          [ --vir_keep=keep1 ]\n'+\
+				'          [ --host_keep=keep2 ]\n'+\
+				'          [ --remove_gapped=%%gaps ]\n'+\
+				'          [ -o | --outdir directory ]\n'#+\
+#				'            --vir_sim=sim1 --host_sim=sim2\n'+\
+#				'          [ -T num_threads ]'
 			)% sys.argv[0]
 
-	# read command line
+	# Read command line
 	for opt, val in optlist:
 		if opt in ('-h', '--help'):
 			sys.exit(usage)
@@ -73,42 +77,55 @@ def getopts(args):
 			options['vir_aln'] = val
 		if opt == '--host_aln':
 			options['host_aln'] = val
-#		if opt == '--vir_sim':
-#			options['vir_sim'] = val
-#		if opt == '--host_sim':
-#			options['host_sim'] = val
 		if opt == '--vir_keep':
 			options['vir_keep'] = val
 		if opt == '--host_keep':
 			options['host_keep'] = val
 		if opt == '--seqID_pairs':
 			options['seqID_pairs'] = val
-		if opt == '-T':
-			options['num_threads'] = val
-	
-	# read control file
+		if opt == '--remove_gapped':
+			options['remove_gapped'] = float(val)
+####### Deprecated options ########
+#		if opt == '--vir_sim':
+#			options['vir_sim'] = val
+#		if opt == '--host_sim':
+#			options['host_sim'] = val
+#		if opt == '-T':
+#			options['num_threads'] = int(val)
+#################################
+
+	# Read control file
 	if 'ctl' in options:
 		options = parse_ctl(options['ctl'], options)
 
-	# set defaults
+	# Set defaults
 	if 'outdir' not in options:
 		options['outdir'] = './'
-	if 'num_threads' not in options:
-		#options['num_threads'] = min(cpu_count() / 2, 1)
-		options['num_threads'] = 1 # multiprocessing module NOT loaded
-	else:
-		options['num_threads'] = int(options['num_threads'])
+
+####### num_threads is deprecated #######
+#	if 'num_threads' not in options:
+#		#options['num_threads'] = min(cpu_count() / 2, 1)
+#		options['num_threads'] = 1 # multiprocessing module NOT loaded
+#	else:
+#		options['num_threads'] = int(options['num_threads'])
+#########################################
+
 	if 'host_keep' not in options:
 		options['host_keep'] = 'all'
 	if 'vir_keep' not in options:
 		options['vir_keep'] = 'all'
+
+	if 'remove_gapped' not in options:
+		options['remove_gapped'] = 0.3
+		print "remove_gapped not set, assumed default %f" % options['remove_gapped']
 	
+	# Check that minimum requirements are met
 	if not set(['vir_aln', 'host_aln',
-#			'vir_sim', 'host_sim',
+#			'vir_sim', 'host_sim', # Deprecated
 			'vir_keep', 'host_keep', 'seqID_pairs']) <= set(options.keys()):
 			sys.exit(usage)
 	
-	# print options
+	# Print options
 	print 'running with options:'
 	[ sys.stdout.write('\t%s: %s\n'%(opt, val)) 
 					for opt, val in sorted(options.iteritems()) ]
@@ -134,42 +151,6 @@ def parse_ctl(ctl_fn, options):
 			options[opt] = val
 	
 	return options
-
-def read_sites(sites_fn):
-	''' Reads space delimited file and return list of sites to process.
-
-	Sites should be 0-indexed non-negative integers.
-
-	'''
-
-	if sites_fn.lower() == 'all':
-		return 'all'
-	sites_fh = open(sites_fn, 'r')
-	return map(int, ''.join(sites_fh.readlines()).split())
-
-def remove_gapped_sites(keep_sites, aln, seqIDs, gap_threshold=0.3):
-	''' From a list of sites, remove those with gaps above a
-		threshold and return a list.
-
-	'''
-
-	# this patch replaces 'all' keyword with site range
-	# this will be moved to read_sites()
-	if keep_sites == 'all':
-		keep_sites = range(aln.num_cols)
-
-	# remove gapped sites
-	remove_these = set()
-
-	# for each aln, remove sites with more than X% gap in relevant seqs
-	for site_i in keep_sites:
-		col = aln.get_site(site_i)
-		filCol = dict([ (seqID, col[seqID]) for seqID in seqIDs ])
-		ngaps = ''.join(filCol.values()).count('-')
-		nseqs = float(len(filCol))
-		if ngaps / nseqs >= gap_threshold:
-			remove_these.add(site_i)
-	return sorted(list(set(keep_sites) - remove_these))
 
 def get_jobname(vir_aln, host_aln):
 	''' Get jobname from alignment filenames
@@ -224,45 +205,29 @@ def doCalc(vir_aln, host_aln, vir_keep, host_keep, seqID_pairs):
 	return stats
 
 def main(options):
-	# make output names
+	# Make output names
 	jobname = get_jobname(options['vir_aln'], options['host_aln'])
 	out_fn = options['outdir'] + '/' + jobname + '.out'
 
-	# load alignments
-	#vir_aln, vir_orgdb = miAux.read_org_and_phy(options['vir_aln'])
-	#host_aln, host_orgdb = miAux.read_org_and_phy(options['host_aln'])
-	vir_aln = iC_A.read_phy(open(options['vir_aln'],'r'))
-	host_aln = iC_A.read_phy(open(options['host_aln'],'r'))
-	print "alignments loaded"
-
-	## load virus-host pairings map
-	# load sequence pairings
-	seqID_pairs = iC_A.read_seqID_pairs(options['seqID_pairs'])
-	print "virus-host pairings read"
-
-	# load list of sites to compare
-	vir_keep = read_sites(options['vir_keep'])
-	host_keep = read_sites(options['host_keep'])
-	print "site lists loaded"
-
-	print >>sys.stderr, "DBG: remove_gapped_sites() necessary for 'all' keyword"
-	vir_keep = remove_gapped_sites(vir_keep, vir_aln,
-						zip(*seqID_pairs)[0])
-	host_keep = remove_gapped_sites(host_keep, host_aln,
-						zip(*seqID_pairs)[1])
-	print "site lists degapped"
+	(vir_aln, host_aln,
+	vir_keep, host_keep,
+	seqID_pairs) = iC_A.load_all_input(options)
 
 	#DBG info
-	print 'vir_keep (max) = %d; ncol = %d'%( sorted(vir_keep)[-1], vir_aln.num_cols)
-	print 'host_keep (max) = %d; ncol = %d'%( sorted(host_keep)[-1], host_aln.num_cols)
+	print "DBG: last column in vir_keep = [ %d ]" % max(vir_keep)
+	print "DBG: last column in host_keep = [ %d ]" % max(host_keep)
+	print "DBG: num columns in vir_aln = [ %d ]" % vir_aln.num_cols
+	print "DBG: num columns in host_aln = [ %d ]" % host_aln.num_cols
+	print "DBG: num columns in vir_keep = [ %d ]" % len(vir_keep)
+	print "DBG: num columns in host_keep = [ %d ]" % len(host_keep)
 
-	# calculate info stats
-
+	# Calculate info stats
+	print "Main calculations...",
 	resObj = doCalc(vir_aln, host_aln, vir_keep, host_keep, seqID_pairs)
-	print "main calculations completed"
+	print "Completed!"
 
 	print_output(resObj, out_fn)
-	print "done"
+	print "Done!"
 
 if __name__ == "__main__":
 	print >>sys.stderr, "DBG: sys.argv:", sys.argv

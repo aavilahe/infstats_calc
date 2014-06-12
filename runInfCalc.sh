@@ -2,8 +2,8 @@
 # Author: Aram Avila-Herrera
 # Email: Aram.Avila-Herrera@ucsf.edu
 
-#export __SRC_PATH="/path/to/infstats"
-export __SRC_PATH="/home/aram/dev-src/infstats_calc"
+#export __SRC_PATH="/path/to/infCalc"
+export __SRC_PATH="${HOME}/dev-src/infCalc"
 
 python ${__SRC_PATH}/infCalc.py ${@}
 
